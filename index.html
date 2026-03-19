@@ -1449,7 +1449,7 @@ function openModal(html){document.getElementById('modal-root').innerHTML='<div c
 function closeModal(){document.getElementById('modal-root').innerHTML='';}
 function showConfirm(title,msg,onOk){
   document.getElementById('modal-root').innerHTML='<div class="modal-overlay"><div class="confirm-box"><div style="font-size:36px;margin-bottom:12px">⚠️</div><h4>'+title+'</h4><p>'+msg+'</p><div class="confirm-btns"><button class="btn btn-secondary" onclick="closeModal()">Hủy</button><button class="btn btn-danger" id="ok-btn">Xác nhận xóa</button></div></div></div>';
-  document.getElementById('ok-btn').onclick=onOk;
+  document.getElementById('ok-btn').onclick=function(){closeModal();onOk();};
 }
 function showAlert(msg){document.getElementById('modal-root').innerHTML='<div class="modal-overlay"><div class="confirm-box"><p style="font-size:14px;color:var(--g800);line-height:1.7;margin-bottom:18px">'+msg+'</p><button class="btn btn-primary" onclick="closeModal()">OK</button></div></div>';}
 function rAppointments(){
