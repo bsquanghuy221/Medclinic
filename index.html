@@ -1,0 +1,2113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedClinic — Quản lý phòng khám</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--b50:#E6F1FB;--b100:#B5D4F4;--b200:#85B7EB;--b400:#378ADD;--b600:#185FA5;--b800:#0C447C;--b900:#042C53;--g50:#F8F9FB;--g100:#EEF0F4;--g200:#D1D5DE;--g400:#8A90A0;--g600:#5A6070;--g800:#2C3040;--r:10px;--rs:6px;}
+html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:var(--g50);color:var(--g800);font-size:14px}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:230px;min-width:230px;background:var(--b900);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:22px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.1)}
+.sidebar-logo h2{color:white;font-size:16px;font-weight:700}
+.sidebar-logo p{color:var(--b200);font-size:11px;margin-top:3px}
+.sidebar-nav{padding:12px 8px;flex:1;overflow-y:auto}
+.nav-section{font-size:10px;font-weight:600;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1px;padding:10px 10px 4px;margin-top:6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rs);cursor:pointer;color:rgba(255,255,255,0.65);font-size:13px;margin-bottom:2px;transition:all 0.15s;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,0.08);color:white}
+.nav-item.active{background:var(--b600);color:white;font-weight:500}
+.sidebar-bottom{padding:12px 10px;border-top:1px solid rgba(255,255,255,0.1)}
+.sync-status{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--rs);cursor:pointer;transition:background 0.15s}
+.sync-status:hover{background:rgba(255,255,255,0.08)}
+.sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-green{background:#4ade80}.dot-yellow{background:#fbbf24;animation:blink 1s infinite}.dot-red{background:#f87171}.dot-gray{background:rgba(255,255,255,0.3)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:white;border-bottom:1px solid var(--g100);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.topbar h1{font-size:17px;font-weight:600;color:var(--b900)}
+.topbar-date{font-size:12px;color:var(--g400);padding:4px 10px;background:var(--g50);border-radius:20px;border:1px solid var(--g100)}
+.btn{padding:7px 16px;border-radius:var(--rs);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:active{transform:scale(0.98)}
+.btn-primary{background:var(--b600);color:white}.btn-primary:hover{background:var(--b800)}
+.btn-secondary{background:white;color:var(--b600);border:1px solid var(--b200)}.btn-secondary:hover{background:var(--b50)}
+.btn-danger{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca}.btn-danger:hover{background:#fecaca}
+.btn-ghost{background:rgba(255,255,255,0.12);color:white;border:1px solid rgba(255,255,255,0.25)}.btn-ghost:hover{background:rgba(255,255,255,0.2)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.content{flex:1;overflow-y:auto;padding:24px 28px}
+.search-bar{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.search-wrap{position:relative;flex:1;max-width:380px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--g400)}
+.search-input{width:100%;padding:8px 12px 8px 34px;border:1px solid var(--g200);border-radius:var(--rs);font-size:13px;outline:none;background:white;color:var(--g800)}
+.search-input:focus{border-color:var(--b400);box-shadow:0 0 0 3px var(--b50)}
+.card{background:white;border-radius:var(--r);border:1px solid var(--g100);box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.card-header{padding:14px 20px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between}
+.card-header h3{font-size:14px;font-weight:600;color:var(--b900)}
+.pt{width:100%;border-collapse:collapse}
+.pt th{text-align:left;padding:9px 14px;font-size:11px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--g100);background:var(--g50)}
+.pt td{padding:11px 14px;border-bottom:1px solid var(--g50);font-size:13px;vertical-align:middle}
+.pt tbody tr:hover td{background:var(--b50);cursor:pointer}
+.pt tbody tr:last-child td{border-bottom:none}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--b100);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--b800);flex-shrink:0}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;line-height:1.4}
+.bb{background:var(--b50);color:var(--b800)}.bg{background:#dcfce7;color:#166534}.br{background:#fee2e2;color:#991b1b}.ba{background:#fef3c7;color:#92400e}.bgr{background:var(--g100);color:var(--g600)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat-card{background:white;border-radius:var(--r);border:1px solid var(--g100);padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.stat-icon{width:38px;height:38px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:18px}
+.stat-label{font-size:11px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.stat-value{font-size:26px;font-weight:700;color:var(--b900);line-height:1}
+.stat-sub{font-size:11px;color:var(--g400);margin-top:4px}
+.sec-title{font-size:12px;font-weight:600;color:var(--b800);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px}
+.fg{margin-bottom:15px}
+.fl{display:block;font-size:12px;font-weight:500;color:var(--g600);margin-bottom:5px}
+.fc{width:100%;padding:8px 11px;border:1px solid var(--g200);border-radius:var(--rs);font-size:13px;outline:none;color:var(--g800);background:white;transition:border-color 0.15s}
+.fc:focus{border-color:var(--b400);box-shadow:0 0 0 3px var(--b50)}
+textarea.fc{resize:vertical;min-height:72px;line-height:1.5}
+.vital-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.vital-item{background:var(--b50);border-radius:var(--rs);padding:12px 14px;border:1px solid var(--b100)}
+.vital-name{font-size:11px;color:var(--b600);font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.3px}
+.vital-val{font-size:20px;font-weight:700;color:var(--b900);line-height:1}
+.vital-unit{font-size:11px;color:var(--b400);font-weight:400;margin-left:2px}
+.visit-card{background:white;border:1px solid var(--g100);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.visit-hdr{padding:13px 18px;background:var(--g50);display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background 0.15s}
+.visit-hdr:hover{background:var(--b50)}
+.visit-body{padding:18px}
+.med-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;background:var(--g50);border-radius:var(--rs);margin-bottom:7px;border:1px solid var(--g100)}
+.test-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--g50);border-radius:var(--rs);margin-bottom:7px;border:1px solid var(--g100)}
+.med-num{width:22px;height:22px;border-radius:50%;background:var(--b600);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(4,44,83,0.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;backdrop-filter:blur(2px)}
+.modal{background:white;border-radius:var(--r);width:100%;max-width:680px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.25)}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:center;background:var(--b900);flex-shrink:0}
+.modal-header h3{color:white;font-size:15px;font-weight:600}
+.modal-close{background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:24px;line-height:1;padding:0}
+.modal-close:hover{color:white}
+.modal-body{padding:22px;overflow-y:auto;flex:1}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--g100);display:flex;justify-content:flex-end;gap:10px;background:var(--g50);flex-shrink:0}
+.confirm-box{background:white;border-radius:var(--r);padding:28px 24px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.25)}
+.confirm-box h4{font-size:16px;font-weight:700;color:var(--b900);margin-bottom:8px}
+.confirm-box p{font-size:13px;color:var(--g600);margin-bottom:22px;line-height:1.6}
+.confirm-btns{display:flex;gap:10px;justify-content:center}
+.divider{height:1px;background:var(--g100);margin:16px 0}
+.flex{display:flex;align-items:center}.gap-8{gap:8px}
+.phi{background:linear-gradient(135deg,var(--b900) 0%,var(--b600) 100%);padding:22px;border-radius:var(--r);margin-bottom:18px;color:white;box-shadow:0 4px 16px rgba(4,44,83,0.25)}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--b600);cursor:pointer;margin-bottom:16px;font-weight:500;background:none;border:none;padding:4px 0}
+.back-btn:hover{color:var(--b900)}
+.empty{text-align:center;padding:32px;color:var(--g400);font-size:13px}
+.allergy-tag{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;background:#fee2e2;color:#991b1b;border-radius:20px;font-size:12px;margin:3px;border:1px solid #fecaca;font-weight:500}
+.notification{position:fixed;top:20px;right:20px;z-index:2000;background:var(--b900);color:white;padding:12px 18px;border-radius:var(--rs);font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);transform:translateX(120%);transition:transform 0.3s ease;display:flex;align-items:center;gap:8px}
+.notification.show{transform:translateX(0)}
+/* Setup wizard */
+.setup-wrap{min-height:100vh;background:var(--g50);display:flex;align-items:center;justify-content:center;padding:24px}
+.setup-card{background:white;border-radius:16px;max-width:620px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.1);overflow:hidden}
+.setup-hero{background:linear-gradient(135deg,var(--b900),var(--b600));padding:32px;text-align:center;color:white}
+.setup-hero h1{font-size:22px;font-weight:700;margin-bottom:8px}
+.setup-hero p{font-size:13px;opacity:0.85;line-height:1.6}
+.setup-body{padding:24px}
+.step{display:flex;gap:14px;margin-bottom:16px;padding:14px;background:var(--g50);border-radius:var(--rs);border:1px solid var(--g100)}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--b600);color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step h4{font-size:13px;font-weight:600;color:var(--b900);margin-bottom:3px}
+.step p{font-size:12px;color:var(--g600);line-height:1.6}
+.step a{color:var(--b600);text-decoration:none;font-weight:500}.step a:hover{text-decoration:underline}
+.code-hint{background:var(--b900);border-radius:var(--rs);padding:8px 12px;font-family:monospace;font-size:11px;color:#93c5fd;margin-top:6px;line-height:1.7;white-space:pre-wrap;word-break:break-all}
+.info-box{background:var(--b50);border:1px solid var(--b100);border-radius:var(--rs);padding:11px 14px;font-size:12px;color:var(--b800);line-height:1.6;margin-bottom:16px}
+@media(max-width:768px){.sidebar{width:60px;min-width:60px}.sidebar-logo p,.nav-item span,.nav-section,.sync-lbl{display:none}.sidebar-logo h2{font-size:20px;text-align:center}.nav-item{justify-content:center;padding:10px}.grid-4{grid-template-columns:1fr 1fr}.grid-2{grid-template-columns:1fr}.vital-grid{grid-template-columns:1fr 1fr}.content{padding:16px}}
+/* Appointment badges */
+.appt-today{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.appt-soon{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.appt-overdue{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.appt-future{background:var(--b50);color:var(--b800);border:1px solid var(--b100)}
+/* Print phiếu */
+.print-btn-group{display:flex;gap:6px}
+</style>
+</head>
+<body>
+
+<div id="setup-screen" style="display:none">
+<div class="setup-wrap">
+<div class="setup-card">
+  <div class="setup-hero">
+    <div style="font-size:46px;margin-bottom:10px">🏥</div>
+    <h1>MedClinic — Đồng bộ Online</h1>
+    <p>Kết nối Supabase để dữ liệu tự động đồng bộ<br>trên mọi máy tính, điện thoại — miễn phí hoàn toàn</p>
+  </div>
+  <div class="setup-body">
+    <div class="info-box">☁️ <strong>Supabase miễn phí</strong> — 500MB lưu trữ, không giới hạn request. Dễ cài hơn Firebase, không cần thẻ tín dụng.</div>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div><h4>Tạo tài khoản Supabase</h4><p>Vào <a href="https://supabase.com" target="_blank">supabase.com</a> → bấm <strong>Start your project</strong> → đăng nhập bằng GitHub hoặc email → bấm <strong>New project</strong> → đặt tên (VD: <em>phongkham</em>) → chọn region <strong>Southeast Asia (Singapore)</strong> → đặt mật khẩu → <strong>Create new project</strong></p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div><h4>Tạo bảng dữ liệu</h4><p>Trong project → menu trái → <strong>SQL Editor</strong> → bấm <strong>New query</strong> → dán đoạn SQL bên dưới → bấm <strong>Run (F5)</strong></p>
+      <div class="code-hint">create table patients (id text primary key, payload jsonb not null default '{}'::jsonb);
+create table visits (id text primary key, payload jsonb not null default '{}'::jsonb);
+alter table patients enable row level security;
+alter table visits enable row level security;
+create policy "public" on patients for all using (true) with check (true);
+create policy "public" on visits for all using (true) with check (true);</div></div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div><h4>Lấy URL và API Key</h4><p>Menu trái → <strong>Project Settings</strong> (biểu tượng bánh răng ⚙) → <strong>API</strong> → copy <strong>Project URL</strong> và <strong>anon / public key</strong></p></div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div><h4>Dán vào ô bên dưới và kết nối</h4></div>
+    </div>
+    <div class="fg" style="margin-top:4px">
+      <label class="fl">Project URL *</label>
+      <input class="fc" id="sb-url" placeholder="https://xxxxxxxxxxxx.supabase.co">
+    </div>
+    <div class="fg">
+      <label class="fl">anon / public key *</label>
+      <textarea class="fc" id="sb-key" rows="3" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+    </div>
+    <div id="setup-err" style="color:#b91c1c;font-size:12px;margin-bottom:12px;display:none;padding:8px 12px;background:#fee2e2;border-radius:var(--rs)"></div>
+    <div style="display:flex;gap:10px;justify-content:space-between;align-items:center">
+      <button class="btn btn-secondary" onclick="useLocal()">💾 Dùng offline (không đồng bộ)</button>
+      <button class="btn btn-primary" onclick="connectSupabase()" id="sb-connect-btn" style="font-size:14px;padding:9px 20px">🔗 Kết nối Supabase</button>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="app" id="app" style="display:none">
+<div class="sidebar">
+  <div class="sidebar-logo"><h2>🏥</h2><p>MedClinic</p></div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Chính</div>
+    <div class="nav-item active" onclick="setView('dashboard')" id="nav-dashboard">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/></svg>
+      <span>Tổng quan</span>
+    </div>
+    <div class="nav-item" onclick="setView('patients')" id="nav-patients">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+      <span>Bệnh nhân</span>
+    </div>
+    <div class="nav-item" onclick="setView('newvisit')" id="nav-newvisit">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+      <span>Khám mới</span>
+    </div>
+    <div class="nav-item" onclick="setView('appointments')" id="nav-appointments">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+      <span>Lịch tái khám</span>
+    </div>
+    <div class="nav-item" onclick="setView('vitalsinbox')" id="nav-vitalsinbox" style="position:relative">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>
+      <span>Theo dõi tại nhà</span>
+      <span id="inbox-badge" style="display:none;position:absolute;top:6px;right:8px;background:#ef4444;color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;line-height:1.4"></span>
+    </div>
+    <div class="nav-section">Dữ liệu</div>
+    <div class="nav-item" onclick="exportData()">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      <span>Xuất backup</span>
+    </div>
+    <div class="nav-item" onclick="triggerImport()">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+      <span>Nhập dữ liệu</span>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+  <div class="sidebar-bottom">
+    <div class="sync-status" onclick="showSyncInfo()" id="sync-btn">
+      <div class="sync-dot dot-gray" id="sync-dot"></div>
+      <span style="color:rgba(255,255,255,0.65);font-size:12px" class="sync-lbl" id="sync-lbl">Chưa kết nối</span>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <h1 id="page-title">Tổng quan</h1>
+    <span class="topbar-date" id="topbar-date"></span>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+<div id="modal-root"></div>
+<div class="notification" id="notif"></div>
+</div>
+
+<script>
+var db={patients:[],visits:[],vitals_log:[]};
+var useSupabase=false, sbUrl='', sbKey='';
+var currentView='dashboard',selectedPid=null,expanded={};
+var medRows=[],testRows=[];
+var assessState={cfs:null,adl:[null,null,null,null,null,null],iadl:[null,null,null,null,null,null,null,null],mna:{q1:null,q2:null,q3:null,q4:null,q5:null,q6:null}};
+var CFS_DATA=[{v:1,lbl:'Rất khỏe mạnh'},{v:2,lbl:'Khỏe mạnh'},{v:3,lbl:'Tự quản lý'},{v:4,lbl:'Dễ tổn thương'},{v:5,lbl:'Yếu nhẹ'},{v:6,lbl:'Yếu vừa'},{v:7,lbl:'Yếu nặng'},{v:8,lbl:'Yếu rất nặng'},{v:9,lbl:'Giai đoạn cuối'}];
+var ADL_ITEMS=['Tắm rửa','Mặc quần áo','Vệ sinh cá nhân','Di chuyển','Tự chủ tiểu/đại tiện','Ăn uống'];
+var IADL_ITEMS=['Dùng điện thoại','Mua sắm','Nấu ăn','Dọn nhà','Giặt đồ','Đi lại ngoài nhà','Tự dùng thuốc','Quản lý tiền'];
+var MNA_QS=[{id:'q1',lbl:'Giảm lượng ăn trong 3 tháng qua?',opts:[{v:0,lbl:'Giảm nhiều'},{v:1,lbl:'Giảm vừa'},{v:2,lbl:'Không giảm'}]},{id:'q2',lbl:'Sụt cân trong 3 tháng qua?',opts:[{v:0,lbl:'>3kg'},{v:1,lbl:'Không biết'},{v:2,lbl:'1–3kg'},{v:3,lbl:'Không sụt'}]},{id:'q3',lbl:'Khả năng vận động?',opts:[{v:0,lbl:'Nằm/xe lăn'},{v:1,lbl:'Ra khỏi giường'},{v:2,lbl:'Ra ngoài được'}]},{id:'q4',lbl:'Bệnh cấp tính / stress tâm lý trong 3 tháng?',opts:[{v:0,lbl:'Có'},{v:2,lbl:'Không'}]},{id:'q5',lbl:'Vấn đề thần kinh – tâm thần?',opts:[{v:0,lbl:'Sa sút/trầm cảm nặng'},{v:1,lbl:'Sa sút nhẹ'},{v:2,lbl:'Không có'}]},{id:'q6',lbl:'BMI (kg/m²)?',opts:[{v:0,lbl:'< 19'},{v:1,lbl:'19–21'},{v:2,lbl:'21–23'},{v:3,lbl:'≥ 23'}]}];
+var SB_KEY_STORAGE='mc_sb_cfg', DB_KEY='mc_db_v2';
+var pollTimer=null;
+
+document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+(function boot(){
+  var s=localStorage.getItem(SB_KEY_STORAGE);
+  if(s){try{var c=JSON.parse(s);if(c.url&&c.key){initSupabase(c.url,c.key);return;}}catch(e){}}
+  if(localStorage.getItem('mc_offline')==='1'){startOffline();return;}
+  document.getElementById('setup-screen').style.display='block';
+})();
+
+function connectSupabase(){
+  var url=document.getElementById('sb-url').value.trim().replace(/\/+$/,'');
+  var key=document.getElementById('sb-key').value.trim();
+  var err=document.getElementById('setup-err');
+  var btn=document.getElementById('sb-connect-btn');
+  err.style.display='none';
+  if(!url||!key){err.textContent='Vui lòng nhập đầy đủ URL và API Key';err.style.display='block';return;}
+  if(!url.includes('supabase')){err.textContent='URL không hợp lệ — phải có dạng https://xxx.supabase.co';err.style.display='block';return;}
+  btn.textContent='⏳ Đang kiểm tra...';btn.disabled=true;
+  fetch(url+'/rest/v1/patients?select=id&limit=1',{headers:{'apikey':key,'Authorization':'Bearer '+key}})
+    .then(function(r){
+      if(r.status===401||r.status===403)throw new Error('API Key không đúng');
+      if(r.status===404)throw new Error('Bảng "patients" chưa tồn tại — vui lòng chạy SQL ở Bước 2');
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      localStorage.setItem(SB_KEY_STORAGE,JSON.stringify({url:url,key:key}));
+      initSupabase(url,key);
+    })
+    .catch(function(e){
+      err.textContent='Kết nối thất bại: '+e.message;err.style.display='block';
+      btn.textContent='🔗 Kết nối Supabase';btn.disabled=false;
+    });
+}
+
+function initSupabase(url,key){
+  sbUrl=url;sbKey=key;useSupabase=true;
+  setSyncStatus('connecting');
+  startApp();
+  loadFromSupabase();
+  startPolling();
+}
+
+function useLocal(){localStorage.setItem('mc_offline','1');startOffline();}
+
+function startOffline(){
+  useSupabase=false;
+  try{var s=localStorage.getItem(DB_KEY);if(s)db=JSON.parse(s);}catch(e){}
+  if(!db.vitals_log)db.vitals_log=[];
+  setSyncStatus('offline');startApp();
+}
+
+function startApp(){
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  render();
+  checkBackupReminder();
+}
+
+function checkBackupReminder(){
+  var last=localStorage.getItem('mc_last_backup');
+  var days=last?Math.floor((Date.now()-parseInt(last))/(86400000)):999;
+  if(days>=7){
+    setTimeout(function(){
+      var msg=days>=999?'Bạn <strong>chưa backup lần nào</strong>!':'Bạn chưa backup trong <strong>'+days+' ngày</strong>!';
+      document.getElementById('modal-root').innerHTML=
+        '<div class="modal-overlay">'+
+        '<div class="confirm-box" style="max-width:360px">'+
+          '<div style="font-size:36px;margin-bottom:12px">💾</div>'+
+          '<h4>Nhắc nhở backup dữ liệu</h4>'+
+          '<p>'+msg+'<br><br>Nên xuất backup để đảm bảo an toàn dữ liệu phòng khám.</p>'+
+          '<div class="confirm-btns" style="flex-direction:column;gap:8px">'+
+            '<button class="btn btn-primary" onclick="exportDataNow()" style="width:100%">💾 Xuất backup ngay</button>'+
+            '<button class="btn btn-secondary" onclick="closeModal()" style="width:100%">Nhắc tôi sau</button>'+
+          '</div>'+
+        '</div></div>';
+    },1500);
+  }
+}
+
+function sbH(){return{'apikey':sbKey,'Authorization':'Bearer '+sbKey,'Content-Type':'application/json'};}
+
+function loadFromSupabase(){
+  if(!useSupabase)return;
+  Promise.all([
+    fetch(sbUrl+'/rest/v1/patients?select=*',{headers:sbH()}).then(function(r){return r.json();}),
+    fetch(sbUrl+'/rest/v1/visits?select=*',{headers:sbH()}).then(function(r){return r.json();})
+  ]).then(function(res){
+    if(res[0].message||res[1].message)throw new Error(res[0].message||res[1].message);
+    db.patients=res[0].map(function(r){return Object.assign({id:r.id},r.payload||{});});
+    db.visits=res[1].map(function(r){return Object.assign({id:r.id},r.payload||{});});
+    setSyncStatus('online');
+    if(currentView!=='newvisit')render();
+    // Load vitals_log silently
+    fetch(sbUrl+'/rest/v1/vitals_log?select=*',{headers:sbH()})
+      .then(function(r){return r.json();})
+      .then(function(data){if(Array.isArray(data)){db.vitals_log=data.map(function(r){return Object.assign({id:r.id},r.payload||{});});}if(currentView==='patient')render();})
+      .catch(function(){});
+  }).catch(function(e){setSyncStatus('error');notify('Lỗi tải dữ liệu: '+e.message,'error');});
+}
+
+function startPolling(){
+  if(pollTimer)clearInterval(pollTimer);
+  pollTimer=setInterval(loadFromSupabase,30000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)loadFromSupabase();});
+}
+
+function setSyncStatus(s){
+  var dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-lbl');
+  if(!dot)return;dot.className='sync-dot';
+  if(s==='online'){dot.classList.add('dot-green');lbl.textContent='Đã đồng bộ ☁';}
+  else if(s==='connecting'){dot.classList.add('dot-yellow');lbl.textContent='Đang kết nối...';}
+  else if(s==='saving'){dot.classList.add('dot-yellow');lbl.textContent='Đang lưu...';}
+  else if(s==='error'){dot.classList.add('dot-red');lbl.textContent='Lỗi kết nối';}
+  else{dot.classList.add('dot-gray');lbl.textContent='Offline (máy này)';}
+}
+
+function showSyncInfo(){
+  if(useSupabase){showAlert('☁ Đang đồng bộ Supabase<br><br>URL: <strong>'+sbUrl+'</strong><br>Dữ liệu tự động cập nhật mỗi 30 giây và khi chuyển tab.<br><br><button class="btn btn-primary btn-sm" onclick="loadFromSupabase();closeModal()" style="margin-top:6px">🔄 Làm mới ngay</button><button class="btn btn-danger btn-sm" onclick="localStorage.removeItem(\''+SB_KEY_STORAGE+'\');location.reload()" style="margin-top:6px;margin-left:8px">Đổi project</button>');}
+  else{showAlert('💾 Chế độ Offline<br><br>Dữ liệu lưu trên máy này.<br><br><button class="btn btn-primary btn-sm" onclick="localStorage.removeItem(\'mc_offline\');location.reload()" style="margin-top:10px">Cài đặt Supabase ngay</button>');}
+}
+
+function saveLocal(){try{localStorage.setItem(DB_KEY,JSON.stringify(db));}catch(e){}}
+
+function sbUpsert(table,id,payload,cb){
+  if(!useSupabase){if(cb)cb();return;}
+  setSyncStatus('saving');
+  fetch(sbUrl+'/rest/v1/'+table,{
+    method:'POST',
+    headers:Object.assign({'Prefer':'resolution=merge-duplicates,return=minimal'},sbH()),
+    body:JSON.stringify({id:id,payload:payload})
+  }).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error(t);});
+    setSyncStatus('online');
+    loadFromSupabase(); // reload ngay sau khi lưu
+    if(cb)cb();
+  }).catch(function(e){notify('Lỗi lưu: '+e.message,'error');setSyncStatus('error');});
+}
+
+function sbDelete(table,id,cb){
+  if(!useSupabase){if(cb)cb();return;}
+  setSyncStatus('saving');
+  fetch(sbUrl+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id),{
+    method:'DELETE',headers:Object.assign({'Prefer':'return=minimal'},sbH())
+  }).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error(t);});
+    setSyncStatus('online');
+    loadFromSupabase(); // reload ngay sau khi xóa
+    if(cb)cb();
+  }).catch(function(e){notify('Lỗi xóa: '+e.message,'error');setSyncStatus('error');});
+}
+
+function dbAddP(p,cb){
+  var pl=Object.assign({},p);delete pl.id;
+  if(!useSupabase){db.patients.push(p);saveLocal();}
+  sbUpsert('patients',p.id,pl,cb);
+}
+function dbUpdP(p,cb){
+  var pl=Object.assign({},p);delete pl.id;
+  if(!useSupabase){var i=db.patients.findIndex(function(x){return x.id===p.id});if(i>=0)db.patients[i]=p;saveLocal();}
+  sbUpsert('patients',p.id,pl,cb);
+}
+function dbDelP(pid,cb){
+  if(!useSupabase){db.patients=db.patients.filter(function(x){return x.id!==pid});db.visits=db.visits.filter(function(v){return v.patientId!==pid});saveLocal();if(cb)cb();return;}
+  setSyncStatus('saving');
+  var vids=db.visits.filter(function(v){return v.patientId===pid}).map(function(v){return v.id;});
+  Promise.all(vids.map(function(vid){
+    return fetch(sbUrl+'/rest/v1/visits?id=eq.'+encodeURIComponent(vid),{method:'DELETE',headers:Object.assign({'Prefer':'return=minimal'},sbH())});
+  })).then(function(){
+    return fetch(sbUrl+'/rest/v1/patients?id=eq.'+encodeURIComponent(pid),{method:'DELETE',headers:Object.assign({'Prefer':'return=minimal'},sbH())});
+  }).then(function(){setSyncStatus('online');if(cb)cb();})
+  .catch(function(e){notify('Lỗi xóa: '+e.message,'error');setSyncStatus('error');});
+}
+function dbAddV(v,cb){
+  var pl=Object.assign({},v);delete pl.id;
+  if(!useSupabase){db.visits.push(v);saveLocal();}
+  sbUpsert('visits',v.id,pl,cb);
+}
+function dbUpdV(v,cb){
+  var pl=Object.assign({},v);delete pl.id;
+  if(!useSupabase){
+    var i=db.visits.findIndex(function(x){return x.id===v.id;});
+    if(i>=0)db.visits[i]=v;
+    saveLocal();
+  }
+  sbUpsert('visits',v.id,pl,cb);
+}
+function dbDelV(vid,cb){
+  if(!useSupabase){db.visits=db.visits.filter(function(x){return x.id!==vid});saveLocal();if(cb)cb();return;}
+  sbDelete('visits',vid,cb);
+}
+
+function uid(){return 'id'+Date.now()+'_'+Math.random().toString(36).slice(2,6)}
+function fd(d){if(!d)return '';try{var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d}catch(e){return d}}
+
+var PROVINCES=['An Giang','Bà Rịa - Vũng Tàu','Bắc Giang','Bắc Kạn','Bạc Liêu','Bắc Ninh','Bến Tre','Bình Định','Bình Dương','Bình Phước','Bình Thuận','Cà Mau','Cần Thơ','Cao Bằng','Đà Nẵng','Đắk Lắk','Đắk Nông','Điện Biên','Đồng Nai','Đồng Tháp','Gia Lai','Hà Giang','Hà Nam','Hà Nội','Hà Tĩnh','Hải Dương','Hải Phòng','Hậu Giang','Hòa Bình','Hưng Yên','Khánh Hòa','Kiên Giang','Kon Tum','Lai Châu','Lạng Sơn','Lào Cai','Lâm Đồng','Long An','Nam Định','Nghệ An','Ninh Bình','Ninh Thuận','Phú Thọ','Phú Yên','Quảng Bình','Quảng Nam','Quảng Ngãi','Quảng Ninh','Quảng Trị','Sóc Trăng','Sơn La','Tây Ninh','Thái Bình','Thái Nguyên','Thanh Hóa','Thừa Thiên Huế','Tiền Giang','TP. Hồ Chí Minh','Trà Vinh','Tuyên Quang','Vĩnh Long','Vĩnh Phúc','Yên Bái'];
+
+function provinceOpts(sel){return PROVINCES.map(function(p){return'<option value="'+p+'"'+(sel===p?' selected':'')+'>'+p+'</option>'}).join('');}
+function addrObj(street,province){return{street:street||'',province:province||''};}
+function addrFull(p){if(!p)return'';if(typeof p==='string')return p;return [p.street,p.province].filter(Boolean).join(', ');}
+function gv(id){var e=document.getElementById(id);return e?e.value.trim():''}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function notify(msg,type){
+  var n=document.getElementById('notif');
+  n.innerHTML=msg;n.style.background=type==='error'?'#b91c1c':type==='warn'?'#92400e':'var(--b900)';
+  n.classList.add('show');setTimeout(function(){n.classList.remove('show')},3000);
+}
+
+function setView(v,pid){
+  currentView=v;if(pid!==undefined)selectedPid=pid;
+  ['dashboard','patients','newvisit','appointments','vitalsinbox'].forEach(function(x){var e=document.getElementById('nav-'+x);if(e)e.classList.toggle('active',x===v)});
+  document.getElementById('page-title').textContent={dashboard:'Tổng quan',patients:'Danh sách bệnh nhân',newvisit:'Khám bệnh mới',patient:'Hồ sơ bệnh nhân',appointments:'Lịch tái khám',vitalsinbox:'📲 Theo dõi tại nhà'}[v]||v;
+  if(v==='vitalsinbox'){clearInboxBadge();}
+  render();
+}
+function render(){
+  var c=document.getElementById('content');if(!c)return;
+  if(currentView==='dashboard')c.innerHTML=rDash();
+  else if(currentView==='patients')c.innerHTML=rPatients();
+  else if(currentView==='patient')c.innerHTML=rPatient(selectedPid);
+  else if(currentView==='newvisit'){c.innerHTML=rNewVisit();setTimeout(function(){if(!document.getElementById('nv-dx-list').children.length)addDxRow('nv-dx-list');},30);}
+  else if(currentView==='appointments')c.innerHTML=rAppointments();
+  else if(currentView==='vitalsinbox')c.innerHTML=rVitalsInbox();
+}
+
+function rDash(){
+  var today=new Date().toISOString().slice(0,10);
+  var todayV=db.visits.filter(function(v){return v.date===today}).length;
+  var recent=db.visits.slice().sort(function(a,b){return b.date.localeCompare(a.date)}).slice(0,8);
+  var wa=db.patients.filter(function(p){return p.allergies&&p.allergies.length>0}).length;
+  var todayAppt=db.visits.filter(function(v){return v.followUp===today}).length;
+  var soonAppt=db.visits.filter(function(v){return v.followUp&&v.followUp>today&&v.followUp<=new Date(Date.now()+7*86400000).toISOString().slice(0,10)}).length;
+  return '<div class="grid-4" style="margin-bottom:20px">'+
+    '<div class="stat-card"><div class="stat-icon" style="background:var(--b50)">👤</div><div class="stat-label">Tổng bệnh nhân</div><div class="stat-value">'+db.patients.length+'</div><div class="stat-sub">Đã đăng ký</div></div>'+
+    '<div class="stat-card"><div class="stat-icon" style="background:#dcfce7">📋</div><div class="stat-label">Khám hôm nay</div><div class="stat-value" style="color:#166534">'+todayV+'</div><div class="stat-sub">'+new Date().toLocaleDateString('vi-VN')+'</div></div>'+
+    '<div class="stat-card" style="cursor:pointer" onclick="setView(\'appointments\')"><div class="stat-icon" style="background:#fef3c7">📅</div><div class="stat-label">Tái khám hôm nay</div><div class="stat-value" style="color:#92400e">'+todayAppt+'</div><div class="stat-sub">'+(soonAppt?'+ '+soonAppt+' lịch trong 7 ngày':'Xem lịch sắp tới')+'</div></div>'+
+    '<div class="stat-card"><div class="stat-icon" style="background:#fee2e2">⚠️</div><div class="stat-label">Có dị ứng thuốc</div><div class="stat-value" style="color:#b91c1c">'+wa+'</div><div class="stat-sub">Cần lưu ý</div></div>'+
+  '</div><div class="card"><div class="card-header"><h3>📅 Lần khám gần đây</h3><button class="btn btn-secondary btn-sm" onclick="setView(\'patients\')">Xem tất cả →</button></div>'+
+  '<table class="pt"><thead><tr><th>Bệnh nhân</th><th>Ngày khám</th><th>Chẩn đoán</th><th>Tái khám</th></tr></thead><tbody>'+
+  (recent.length===0?'<tr><td colspan="4"><div class="empty">Chưa có lần khám nào</div></td></tr>':
+  recent.map(function(v){var p=db.patients.find(function(x){return x.id===v.patientId});if(!p)return'';
+    return '<tr onclick="setView(\'patient\',\''+v.patientId+'\')" style="cursor:pointer"><td><div class="flex gap-8"><div class="avatar">'+p.name.split(' ').pop()[0]+'</div><span style="font-weight:500">'+esc(p.name)+'</span></div></td><td>'+fd(v.date)+'</td><td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--g600)">'+esc(v.diagnosis)+'</td><td>'+(v.followUp?'<span class="badge bb">'+fd(v.followUp)+'</span>':'—')+'</td></tr>';
+  }).join(''))+
+  '</tbody></table></div>';
+}
+
+function rPatients(){
+  return '<div class="search-bar"><div class="search-wrap"><svg class="search-icon" width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>'+
+  '<input class="search-input" placeholder="Tìm tên, số điện thoại..." oninput="filterP(this.value)"></div>'+
+  '<button class="btn btn-primary" onclick="showAddModal()">+ Thêm bệnh nhân</button></div>'+
+  '<div class="card"><table class="pt"><thead><tr><th>Bệnh nhân</th><th>Năm sinh</th><th>Giới tính</th><th>Điện thoại</th><th>Nhóm máu</th><th>Dị ứng</th><th>Lần khám</th><th></th></tr></thead>'+
+  '<tbody id="ptbody">'+rPRows(db.patients)+'</tbody></table>'+(db.patients.length===0?'<div class="empty">Chưa có bệnh nhân nào.</div>':'')+'</div>';
+}
+function rPRows(list){
+  if(!list.length)return '<tr><td colspan="8"><div class="empty">Không tìm thấy</div></td></tr>';
+  return list.map(function(p){
+    var vc=db.visits.filter(function(v){return v.patientId===p.id}).length;
+    var yr=p.dob?p.dob.slice(0,4):'—';
+    return '<tr onclick="setView(\'patient\',\''+p.id+'\')" style="cursor:pointer">'+
+      '<td><div class="flex gap-8"><div class="avatar">'+p.name.split(' ').pop()[0]+'</div><div><div style="font-weight:600">'+esc(p.name)+'</div><div style="font-size:11px;color:var(--g400)">'+esc(p.address||'')+'</div></div></div></td>'+
+      '<td>'+yr+'</td><td><span class="badge '+(p.gender==='Nam'?'bb':'ba')+'">'+p.gender+'</span></td><td>'+esc(p.phone||'')+'</td>'+
+      '<td><span class="badge bgr">'+(p.blood||'?')+'</span></td>'+
+      '<td>'+(p.allergies&&p.allergies.length?'<span class="badge br">⚠ '+p.allergies.length+' loại</span>':'<span class="badge bg">✓ Không có</span>')+'</td>'+
+      '<td style="font-weight:700;color:var(--b600);font-size:15px">'+vc+'</td>'+
+      '<td onclick="event.stopPropagation()"><button class="btn btn-primary btn-sm" onclick="goNV(\''+p.id+'\')">+ Khám</button></td>'+
+    '</tr>';
+  }).join('');
+}
+function filterP(q){var f=q?db.patients.filter(function(p){return p.name.toLowerCase().indexOf(q.toLowerCase())>=0||(p.phone&&p.phone.indexOf(q)>=0)}):db.patients;var tb=document.getElementById('ptbody');if(tb)tb.innerHTML=rPRows(f);}
+
+function rPatient(pid){
+  var p=db.patients.find(function(x){return x.id===pid});
+  if(!p)return '<div class="empty">Không tìm thấy bệnh nhân</div>';
+  var visits=db.visits.filter(function(v){return v.patientId===pid}).sort(function(a,b){return b.date.localeCompare(a.date)});
+  var age=p.dob?new Date().getFullYear()-parseInt(p.dob.slice(0,4))+'':'—';
+  var lastV=visits.length?'Lần cuối: '+fd(visits[0].date):'Chưa khám';
+  var bmi='';if(visits.length){var lv=visits[0];if(lv.vitals&&lv.vitals.weight&&lv.vitals.height){var h=lv.vitals.height/100;bmi=(lv.vitals.weight/(h*h)).toFixed(1)+' kg/m²'}}
+  return '<button class="back-btn" onclick="setView(\'patients\')">← Quay lại danh sách</button>'+
+  '<div class="phi"><div class="flex" style="gap:16px;align-items:flex-start">'+
+    '<div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:white;flex-shrink:0">'+p.name.split(' ').pop()[0]+'</div>'+
+    '<div style="flex:1"><div style="font-size:20px;font-weight:700;color:white;margin-bottom:4px">'+esc(p.name)+'</div>'+
+    '<div style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:2px">'+age+' tuổi · '+p.gender+' · Nhóm máu '+(p.blood||'?')+' · '+esc(p.phone||'')+'</div>'+
+    '<div style="font-size:12px;color:rgba(255,255,255,0.65)">'+esc(addrFull(p.address))+(p.job?' · '+esc(p.job):'')+' · '+lastV+(bmi?' · BMI '+bmi:'')+'</div></div>'+
+    '<div style="display:flex;gap:8px;flex-shrink:0"><button class="btn btn-primary btn-sm" onclick="goNV(\''+p.id+'\')">+ Khám mới</button><button class="btn btn-ghost btn-sm" onclick="showPatientLinkModal(\''+p.id+'\')">📲 Link theo dõi</button><button class="btn btn-ghost btn-sm" onclick="showEditModal(\''+p.id+'\')">✏ Sửa</button></div>'+
+  '</div></div>'+
+  '<div class="grid-2" style="margin-bottom:18px">'+
+    '<div style="display:flex;flex-direction:column;gap:14px">'+
+      '<div class="card"><div class="card-header"><h3>📖 Tiền sử bệnh</h3><button class="btn btn-secondary btn-sm" onclick="showHistModal(\''+p.id+'\')">Sửa</button></div>'+
+      '<div style="padding:14px 18px">'+(p.history&&p.history.length?p.history.map(function(h){return '<div class="med-item" style="background:var(--b50);border-color:var(--b100)"><div style="width:7px;height:7px;border-radius:50%;background:var(--b400);flex-shrink:0;margin-top:5px"></div><span>'+esc(h)+'</span></div>';}).join(''):'<div class="empty" style="padding:12px 0">Chưa có tiền sử bệnh</div>')+'</div></div>'+
+      (function(){
+        if(!visits.length)return'';
+        var lv=visits[0];
+        var dxList=lv.diagnoses&&lv.diagnoses.length?lv.diagnoses:(lv.diagnosis?[{name:lv.diagnosis,note:''}]:[]);
+        if(!dxList.length)return'';
+        return '<div class="card">'+
+          '<div class="card-header" style="border-bottom:2px solid #99f6e4">'+
+            '<h3 style="color:#0d9488">🩺 Chẩn đoán hiện tại</h3>'+
+            '<span style="font-size:11px;color:#6b7280;font-weight:400">'+fd(lv.date)+'</span>'+
+          '</div>'+
+          '<div style="padding:14px 18px">'+
+            dxList.map(function(d){
+              return '<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;background:linear-gradient(to right,#f0fdfa,#f8fffe);border-radius:var(--rs);border:1px solid #99f6e4;margin-bottom:5px">'+
+                '<div style="width:7px;height:7px;border-radius:50%;background:#0d9488;flex-shrink:0;margin-top:5px"></div>'+
+                '<div><div style="font-size:13px;font-weight:600;color:#134e4a">'+esc(d.name)+'</div>'+
+                (d.note?'<div style="font-size:11px;color:#0f766e;margin-top:2px;font-style:italic">'+esc(d.note)+'</div>':'')+
+                '</div>'+
+              '</div>';
+            }).join('')+
+          '</div>'+
+        '</div>';
+      })()+
+    '</div>'+
+    '<div style="display:flex;flex-direction:column;gap:14px">'+
+    '<div class="card"><div class="card-header"><h3>🚨 Dị ứng thuốc</h3><button class="btn btn-secondary btn-sm" onclick="showAllergyModal(\''+p.id+'\')">Sửa</button></div>'+
+    '<div style="padding:14px 18px">'+(p.allergies&&p.allergies.length?'<div style="margin-bottom:8px"><span class="badge br">⚠ Có '+p.allergies.length+' loại dị ứng</span></div>'+p.allergies.map(function(a){return '<span class="allergy-tag">⚠ '+esc(a)+'</span>';}).join(''):'<div class="empty" style="padding:12px 0">✓ Không ghi nhận dị ứng</div>')+'</div></div>'+
+    (function(){
+      // Tìm lần khám gần nhất có assessment
+      var lva=visits.find(function(v){return v.assessments&&(v.assessments.cfs!=null||v.assessments.adl||v.assessments.iadl||v.assessments.mna);});
+      if(!lva)return'';
+      var a=lva.assessments;
+      var parts=[];
+      if(a.cfs!=null){
+        var cfsLbl=CFS_DATA[a.cfs-1]?CFS_DATA[a.cfs-1].lbl:'';
+        parts.push({icon:'🏃',label:'CFS',val:a.cfs+'/9',sub:cfsLbl,color:a.cfs<=3?'#166534':a.cfs<=5?'#92400e':'#991b1b',bg:a.cfs<=3?'#dcfce7':a.cfs<=5?'#fef3c7':'#fee2e2',border:a.cfs<=3?'#86efac':a.cfs<=5?'#fde68a':'#fecaca'});
+      }
+      if(a.adl&&a.adl.score!=null){
+        var as=a.adl.score;
+        parts.push({icon:'🧍',label:'ADL',val:as+'/6',sub:as===6?'Độc lập':as>=4?'Phụ thuộc nhẹ':as>=2?'Phụ thuộc vừa':'Phụ thuộc nặng',color:as===6?'#166534':as>=4?'#92400e':'#991b1b',bg:as===6?'#dcfce7':as>=4?'#fef3c7':'#fee2e2',border:as===6?'#86efac':as>=4?'#fde68a':'#fecaca'});
+      }
+      if(a.iadl&&a.iadl.score!=null){
+        var is=a.iadl.score;
+        parts.push({icon:'🏠',label:'IADL',val:is+'/8',sub:is>=6?'Độc lập':is>=4?'Phụ thuộc nhẹ':is>=2?'Phụ thuộc vừa':'Phụ thuộc nặng',color:is>=6?'#166534':is>=4?'#92400e':'#991b1b',bg:is>=6?'#dcfce7':is>=4?'#fef3c7':'#fee2e2',border:is>=6?'#86efac':is>=4?'#fde68a':'#fecaca'});
+      }
+      if(a.mna&&a.mna.score!=null){
+        var ms=a.mna.score;
+        parts.push({icon:'🥗',label:'MNA-SF',val:ms+'/14',sub:ms>=12?'Bình thường':ms>=8?'Nguy cơ SDD':'Suy dinh dưỡng',color:ms>=12?'#166534':ms>=8?'#92400e':'#991b1b',bg:ms>=12?'#dcfce7':ms>=8?'#fef3c7':'#fee2e2',border:ms>=12?'#86efac':ms>=8?'#fde68a':'#fecaca'});
+      }
+      if(!parts.length)return'';
+      return '<div class="card">'+
+        '<div class="card-header"><h3>📊 Thang điểm lão khoa</h3><span style="font-size:11px;color:#6b7280;font-weight:400">'+fd(lva.date)+'</span></div>'+
+        '<div style="padding:14px 18px;display:flex;flex-direction:column;gap:8px">'+
+          parts.map(function(pt){
+            return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:'+pt.bg+';border-radius:var(--rs);border:1px solid '+pt.border+'">'+
+              '<span style="font-size:16px">'+pt.icon+'</span>'+
+              '<div style="flex:1">'+
+                '<div style="font-size:11px;font-weight:700;color:'+pt.color+';text-transform:uppercase;letter-spacing:0.4px">'+pt.label+'</div>'+
+                '<div style="font-size:12px;color:'+pt.color+'">'+pt.sub+'</div>'+
+              '</div>'+
+              '<div style="font-size:16px;font-weight:700;color:'+pt.color+'">'+pt.val+'</div>'+
+            '</div>';
+          }).join('')+
+        '</div>'+
+      '</div>';
+    })()+
+    '</div>'+
+  '</div>'+
+  (function(){
+    var logs=(db.vitals_log||[]).filter(function(l){return l.patientId===pid;}).sort(function(a,b){return(b.submittedAt||'').localeCompare(a.submittedAt||'');});
+    if(!logs.length)return'';
+    var secId='vlog_sec_'+pid;
+    var open=expanded[secId]!==false; // mặc định mở
+    var rows=logs.slice(0,20).map(function(l,idx){
+      var vt=l.vitals||{};
+      var parts=[];
+      if(vt.bp)parts.push('<span style="background:#e6f1fb;color:#185FA5;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600">💓 '+vt.bp+'</span>');
+      if(vt.hr)parts.push('<span style="background:#e6f1fb;color:#185FA5;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600">❤️ '+vt.hr+' l/p</span>');
+      if(vt.temp)parts.push('<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600">🌡 '+vt.temp+'°C</span>');
+      if(vt.spo2)parts.push('<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600">🫁 '+vt.spo2+'%</span>');
+      if(vt.weight)parts.push('<span style="background:#f3f4f6;color:#374151;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600">⚖️ '+vt.weight+'kg</span>');
+      if(vt.glucose)parts.push('<span style="background:#fdf4ff;color:#7e22ce;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600">🩸 '+vt.glucose+'mmol/L</span>');
+      var dt=new Date(l.submittedAt);
+      var timeStr=dt.toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'});
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--g50)">'+
+        '<div style="font-size:11px;color:'+(idx===0?'#166534':'var(--g400)')+';font-weight:'+(idx===0?'600':'400')+';margin-bottom:6px">📱 '+timeStr+'</div>'+
+        (parts.length?'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:'+(l.note?'6px':'0')+'">'+parts.join('')+'</div>':'')+
+        (l.note?'<div style="font-size:12px;color:var(--g600);font-style:italic">📝 '+esc(l.note)+'</div>':'')+
+      '</div>';
+    }).join('');
+    return '<div class="card" style="margin-bottom:18px">'+
+      '<div class="card-header" onclick="toggleV(\''+secId+'\')" style="background:linear-gradient(to right,#f0fdf4,white);border-bottom:'+(open?'2px solid #86efac':'none')+';cursor:pointer">'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<h3 style="color:#166534">📲 Theo dõi tại nhà <span style="font-weight:400;color:#6b7280">('+logs.length+' lần)</span></h3>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<button class="btn btn-sm" onclick="event.stopPropagation();showPatientLinkModal(\''+pid+'\')" style="background:#f0fdf4;color:#166534;border:1px solid #86efac;font-size:12px">🔗 Chia sẻ link</button>'+
+          '<span style="color:var(--g400);font-size:18px">'+(open?'▲':'▼')+'</span>'+
+        '</div>'+
+      '</div>'+
+      (open?'<div style="padding:0 18px">'+rows+'</div>':'')+
+    '</div>';
+  })()+
+  '<div class="card"><div class="card-header"><h3>📅 Lịch sử khám <span style="font-weight:400;color:var(--g400)">('+visits.length+' lần)</span></h3></div>'+
+  '<div style="padding:14px">'+(visits.length===0?'<div class="empty">Chưa có lần khám nào.</div>':visits.map(function(v){return rVC(v)}).join(''))+'</div></div>';
+}
+function rVC(v){
+  var open=expanded[v.id];
+  return '<div class="visit-card">'+
+    '<div class="visit-hdr" onclick="toggleV(\''+v.id+'\')">'+
+      '<div class="flex gap-8"><span style="font-weight:700;color:var(--b900)">'+fd(v.date)+'</span><span style="color:var(--g300)">|</span><span style="color:var(--g600);font-size:13px">'+esc(v.diagnosis)+'</span></div>'+
+      '<div class="flex gap-8">'+
+        (v.followUp?'<span class="badge bb">Tái khám: '+fd(v.followUp)+'</span>':'')+
+        (v.tests&&v.tests.length?'<span class="badge '+(v.tests.some(function(t){return t.status==='done';})?' bg">✓ CLS':'ba">⏳ CLS')+' ('+v.tests.length+')</span>':'')+
+        '<span style="color:var(--g400);font-size:18px">'+(open?'▲':'▼')+'</span>'+
+      '</div>'+
+    '</div>'+
+    (open?'<div class="visit-body">'+
+      '<div class="vital-grid">'+mkV('Huyết áp',v.vitals.bp,'mmHg')+mkV('Nhịp tim',v.vitals.hr,'l/p')+mkV('Nhiệt độ',v.vitals.temp,'°C')+mkV('SpO₂',v.vitals.spo2,'%')+mkV('Cân nặng',v.vitals.weight,'kg')+mkV('Chiều cao',v.vitals.height,'cm')+'</div>'+
+      rAssessScores(v.assessments)+
+      '<div class="grid-2">'+
+        '<div><div class="sec-title">Lý do khám</div><div style="padding:10px 12px;background:var(--g50);border-radius:var(--rs);font-size:13px;line-height:1.5;margin-bottom:14px;border:1px solid var(--g100)">'+esc(v.chiefComplaint)+'</div>'+
+        '<div class="sec-title">Chẩn đoán</div>'+
+        (function(){
+          var dxList=v.diagnoses&&v.diagnoses.length?v.diagnoses:(v.diagnosis?[{name:v.diagnosis,code:v.icdCode||'',note:''}]:[]);
+          return dxList.map(function(d,i){
+            return '<div style="padding:8px 12px;background:var(--b50);border-radius:var(--rs);margin-bottom:6px;border:1px solid var(--b100)">'+
+              '<div style="display:flex;align-items:center;gap:8px">'+
+                (dxList.length>1?'<span style="min-width:18px;height:18px;border-radius:50%;background:var(--b600);color:white;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(i+1)+'</span>':'')+
+                '<span style="font-size:13px;font-weight:600;color:var(--b900)">'+esc(d.name)+'</span>'+
+                (d.code?'<span class="badge bb" style="font-size:11px;margin-left:auto;flex-shrink:0">'+esc(d.code)+'</span>':'')+
+              '</div>'+
+              (d.note?'<div style="font-size:12px;color:var(--g600);margin-top:5px;padding-left:'+(dxList.length>1?'26px':'0')+'">📝 '+esc(d.note)+'</div>':'')+
+            '</div>';
+          }).join('');
+        })()+
+        (v.note?'<div class="sec-title">Ghi chú</div><div style="padding:10px 12px;background:var(--g50);border-radius:var(--rs);font-size:13px;border:1px solid var(--g100)">'+esc(v.note)+'</div>':'')+'</div>'+
+        '<div><div class="sec-title">💊 Đơn thuốc ('+v.medications.length+')</div>'+
+        (v.medications.length?v.medications.map(function(m,i){
+          var doseStr=(m.qty||'?')+' '+(m.form||'viên')+' × '+(m.freq||'?')+' lần/ngày';
+          var timeStr=m.timing?'<span style="display:inline-flex;align-items:center;gap:4px;background:var(--b50);border:1px solid var(--b100);border-radius:20px;padding:2px 8px;font-size:11px;color:var(--b800)">🕐 '+esc(m.timing)+'</span>':'';
+          var durStr=m.duration?'<span style="display:inline-flex;align-items:center;gap:4px;background:var(--g100);border-radius:20px;padding:2px 8px;font-size:11px;color:var(--g600)">📅 '+esc(m.duration)+' ngày</span>':'';
+          // backward compat: old format had .dose
+          if(!m.qty&&m.dose){doseStr=esc(m.dose);timeStr='';durStr=m.duration?'<span style="font-size:12px;color:var(--g400)">'+esc(m.duration)+'</span>':'';}
+          return '<div class="med-item" style="flex-direction:column;align-items:stretch;gap:6px">'+
+            '<div style="display:flex;align-items:center;gap:8px">'+
+              '<div class="med-num">'+(i+1)+'</div>'+
+              '<div style="font-weight:700;font-size:13px;color:var(--b900)">'+esc(m.name)+'</div>'+
+            '</div>'+
+            '<div style="padding-left:30px">'+
+              '<div style="font-size:13px;font-weight:600;color:var(--b700);margin-bottom:5px">'+doseStr+'</div>'+
+              '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">'+timeStr+durStr+'</div>'+
+              (m.note?'<div style="font-size:12px;color:var(--g500);font-style:italic">📌 '+esc(m.note)+'</div>':'')+
+            '</div>'+
+          '</div>';
+        }).join(''):'<div style="font-size:13px;color:var(--g400);padding:6px 0">Không kê đơn</div>')+
+        '<div class="sec-title" style="margin-top:14px">🔬 Cận lâm sàng ('+v.tests.length+')</div>'+
+        (v.tests.length?v.tests.map(function(t){return '<div class="test-item"><div><div style="font-weight:600;font-size:13px;margin-bottom:2px">'+esc(t.name)+'</div><div style="font-size:12px;color:var(--g400)">'+esc(t.result)+'</div></div><span class="badge '+(t.status==='done'?'bg':'ba')+'">'+(t.status==='done'?'✓ Có KQ':'⏳ Chờ KQ')+'</span></div>'}).join(''):'<div style="font-size:13px;color:var(--g400);padding:6px 0">Không có</div>')+'</div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--g100)">'+
+      '<div class="print-btn-group"><button class="btn btn-secondary btn-sm" onclick="previewVisit(\''+v.id+'\')">🖨 Xem &amp; In phiếu</button><button class="btn btn-secondary btn-sm" onclick="printVisit(\''+v.id+'\')">📄 Xuất PDF</button></div>'+
+      '<div style="display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="showEditVisitModal(\''+v.id+'\')">✏ Sửa phiếu</button><button class="btn btn-danger btn-sm" onclick="confirmDelV(\''+v.id+'\')">🗑 Xóa</button></div></div>'+
+    '</div>':'')+'</div>';
+}
+function mkV(n,val,u){return '<div class="vital-item"><div class="vital-name">'+n+'</div><div class="vital-val">'+(val||'—')+(val?'<span class="vital-unit">'+u+'</span>':'')+'</div></div>'}
+function toggleV(vid){expanded[vid]=!expanded[vid];render();}
+
+function resetAssessState(){assessState={cfs:null,adl:[null,null,null,null,null,null],iadl:[null,null,null,null,null,null,null,null],mna:{q1:null,q2:null,q3:null,q4:null,q5:null,q6:null}};}
+
+function setCFS(v){
+  assessState.cfs=v;
+  for(var i=1;i<=9;i++){var b=document.getElementById('cfs-btn-'+i);if(b){b.style.background=i===v?'var(--b600)':'white';b.style.color=i===v?'white':'var(--g800)';b.style.borderColor=i===v?'var(--b600)':'var(--g200)';}}
+  var sd=document.getElementById('cfs-score-txt');if(sd)sd.textContent='CFS '+v+'/9 — '+CFS_DATA[v-1].lbl;
+}
+function setADL(idx,val){
+  assessState.adl[idx]=val;
+  var b0=document.getElementById('adl-'+idx+'-0'),b1=document.getElementById('adl-'+idx+'-1');
+  if(b1){b1.style.background=val===1?'#dcfce7':'white';b1.style.color=val===1?'#166534':'var(--g800)';b1.style.borderColor=val===1?'#86efac':'var(--g200)';}
+  if(b0){b0.style.background=val===0?'#fee2e2':'white';b0.style.color=val===0?'#991b1b':'var(--g800)';b0.style.borderColor=val===0?'#fecaca':'var(--g200)';}
+  var score=assessState.adl.filter(function(x){return x===1;}).length;
+  var done=assessState.adl.filter(function(x){return x!==null;}).length;
+  var lbl=done===6?(score===6?'Độc lập hoàn toàn':score>=4?'Phụ thuộc nhẹ':score>=2?'Phụ thuộc vừa':'Phụ thuộc nặng'):'';
+  var sd=document.getElementById('adl-score-txt');if(sd)sd.textContent='ADL '+score+'/'+done+(lbl?' — '+lbl:'');
+}
+function setIADL(idx,val){
+  assessState.iadl[idx]=val;
+  var b0=document.getElementById('iadl-'+idx+'-0'),b1=document.getElementById('iadl-'+idx+'-1');
+  if(b1){b1.style.background=val===1?'#dcfce7':'white';b1.style.color=val===1?'#166534':'var(--g800)';b1.style.borderColor=val===1?'#86efac':'var(--g200)';}
+  if(b0){b0.style.background=val===0?'#fee2e2':'white';b0.style.color=val===0?'#991b1b':'var(--g800)';b0.style.borderColor=val===0?'#fecaca':'var(--g200)';}
+  var score=assessState.iadl.filter(function(x){return x===1;}).length;
+  var done=assessState.iadl.filter(function(x){return x!==null;}).length;
+  var lbl=done===8?(score>=6?'Độc lập':score>=4?'Phụ thuộc nhẹ':score>=2?'Phụ thuộc vừa':'Phụ thuộc nặng'):'';
+  var sd=document.getElementById('iadl-score-txt');if(sd)sd.textContent='IADL '+score+'/'+done+(lbl?' — '+lbl:'');
+}
+function setMNA(q,val){
+  assessState.mna[q]=val;
+  document.querySelectorAll('[data-mnaq="'+q+'"]').forEach(function(b){var bv=parseInt(b.getAttribute('data-mnav'));b.style.background=bv===val?'var(--b600)':'white';b.style.color=bv===val?'white':'var(--g800)';b.style.borderColor=bv===val?'var(--b600)':'var(--g200)';});
+  var vals=Object.values(assessState.mna);
+  var done=vals.filter(function(x){return x!==null;}).length;
+  var score=vals.reduce(function(s,x){return s+(x||0);},0);
+  var lbl=done===6?(score>=12?'Dinh dưỡng bình thường':score>=8?'Nguy cơ suy dinh dưỡng':'Suy dinh dưỡng'):'';
+  var sd=document.getElementById('mna-score-txt');if(sd)sd.textContent='MNA-SF '+score+(done<6?'+ (chưa đủ)':'/14'+(lbl?' — '+lbl:''));
+}
+function readAssessFromForm(){
+  var adlDone=assessState.adl.every(function(x){return x!==null;});
+  var iadlDone=assessState.iadl.every(function(x){return x!==null;});
+  var mnaVals=Object.values(assessState.mna);
+  var mnaDone=mnaVals.every(function(x){return x!==null;});
+  return{
+    cfs:assessState.cfs,
+    adl:adlDone?{score:assessState.adl.filter(function(x){return x===1;}).length,items:assessState.adl.slice()}:null,
+    iadl:iadlDone?{score:assessState.iadl.filter(function(x){return x===1;}).length,items:assessState.iadl.slice()}:null,
+    mna:mnaDone?{score:mnaVals.reduce(function(s,x){return s+(x||0);},0),answers:Object.assign({},assessState.mna)}:null
+  };
+}
+function initAssessUI(a){
+  if(!a)return;
+  if(a.cfs!=null){
+    document.getElementById('assess-body-cfs').style.display='block';
+    document.getElementById('assess-icon-cfs').textContent='▲';
+    setCFS(a.cfs);
+  }
+  if(a.adl&&a.adl.items){
+    document.getElementById('assess-body-adl').style.display='block';
+    document.getElementById('assess-icon-adl').textContent='▲';
+    a.adl.items.forEach(function(v,i){if(v!==null)setADL(i,v);});
+  }
+  if(a.iadl&&a.iadl.items){
+    document.getElementById('assess-body-iadl').style.display='block';
+    document.getElementById('assess-icon-iadl').textContent='▲';
+    a.iadl.items.forEach(function(v,i){if(v!==null)setIADL(i,v);});
+  }
+  if(a.mna&&a.mna.answers){
+    document.getElementById('assess-body-mna').style.display='block';
+    document.getElementById('assess-icon-mna').textContent='▲';
+    Object.keys(a.mna.answers).forEach(function(q){if(a.mna.answers[q]!==null)setMNA(q,a.mna.answers[q]);});
+  }
+}
+function rAssessScores(a){
+  if(!a)return'';
+  var parts=[];
+  if(a.cfs!=null)parts.push('<span class="badge bb">CFS '+a.cfs+'/9 — '+CFS_DATA[a.cfs-1].lbl+'</span>');
+  if(a.adl)parts.push('<span class="badge '+(a.adl.score>=5?'bg':a.adl.score>=3?'ba':'br')+'">ADL '+a.adl.score+'/6</span>');
+  if(a.iadl)parts.push('<span class="badge '+(a.iadl.score>=6?'bg':a.iadl.score>=4?'ba':'br')+'">IADL '+a.iadl.score+'/8</span>');
+  if(a.mna)parts.push('<span class="badge '+(a.mna.score>=12?'bg':a.mna.score>=8?'ba':'br')+'">MNA-SF '+a.mna.score+'/14'+(a.mna.score>=12?' — Bình thường':a.mna.score>=8?' — Nguy cơ SDD':' — Suy dinh dưỡng')+'</span>');
+  if(!parts.length)return'';
+  return'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:10px 12px;background:var(--b50);border-radius:var(--rs);border:1px solid var(--b100)"><span style="font-size:11px;font-weight:600;color:var(--b800);align-self:center;margin-right:4px">🏥 Lão khoa:</span>'+parts.join('')+'</div>';
+}
+function toggleAssess(id){
+  var body=document.getElementById('assess-body-'+id);
+  var icon=document.getElementById('assess-icon-'+id);
+  if(!body||!icon)return;
+  var open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  icon.textContent=open?'▼':'▲';
+}
+function rAssessHTML(){
+  var abtn='padding:5px 12px;border:1px solid var(--g200);background:white;border-radius:20px;cursor:pointer;font-size:12px;color:var(--g800);transition:all 0.15s;white-space:nowrap';
+  var cfsBtns='';
+  CFS_DATA.forEach(function(d){cfsBtns+='<button id="cfs-btn-'+d.v+'" onclick="setCFS('+d.v+')" title="'+d.lbl+'" style="padding:7px 2px;border:1px solid var(--g200);background:white;border-radius:var(--rs);cursor:pointer;font-size:14px;font-weight:700;color:var(--g800);transition:all 0.15s;width:100%">'+d.v+'</button>';});
+  var cfsLbls='';
+  CFS_DATA.forEach(function(d){var s=d.lbl.split(' ').pop();cfsLbls+='<div style="text-align:center;font-size:9px;color:var(--g400);line-height:1.2">'+s+'</div>';});
+  var adlRows='';
+  ADL_ITEMS.forEach(function(item,i){adlRows+='<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--g50)"><span style="font-size:13px">'+item+'</span><div style="display:flex;gap:6px"><button id="adl-'+i+'-1" onclick="setADL('+i+',1)" style="'+abtn+'">✓ Độc lập</button><button id="adl-'+i+'-0" onclick="setADL('+i+',0)" style="'+abtn+'">✗ Phụ thuộc</button></div></div>';});
+  var iadlRows='';
+  IADL_ITEMS.forEach(function(item,i){iadlRows+='<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--g50)"><span style="font-size:13px">'+item+'</span><div style="display:flex;gap:6px"><button id="iadl-'+i+'-1" onclick="setIADL('+i+',1)" style="'+abtn+'">✓ Độc lập</button><button id="iadl-'+i+'-0" onclick="setIADL('+i+',0)" style="'+abtn+'">✗ Phụ thuộc</button></div></div>';});
+  var mnaQs='';
+  MNA_QS.forEach(function(q,qi){var opts='';q.opts.forEach(function(opt){opts+='<button data-mnaq="'+q.id+'" data-mnav="'+opt.v+'" onclick="setMNA(\''+q.id+'\','+opt.v+')" style="'+abtn+'">'+opt.lbl+'</button>';});mnaQs+='<div style="margin-bottom:10px"><div style="font-size:12px;color:var(--g600);margin-bottom:5px;font-weight:500">'+(qi+1)+'. '+q.lbl+'</div><div style="display:flex;gap:6px;flex-wrap:wrap">'+opts+'</div></div>';});
+
+  function section(id,title,scoreId,scoreDefault,content){
+    return '<div style="border:1px solid var(--b100);border-radius:var(--rs);margin-bottom:8px;overflow:hidden">'+
+      '<div onclick="toggleAssess(\''+id+'\')" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:white;cursor:pointer;user-select:none">'+
+        '<span style="font-size:12px;font-weight:700;color:var(--b900)">'+title+'</span>'+
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<span id="'+scoreId+'" style="font-size:12px;color:var(--b600);font-weight:500">'+scoreDefault+'</span>'+
+          '<span id="assess-icon-'+id+'" style="font-size:12px;color:var(--g400)">▼</span>'+
+        '</div>'+
+      '</div>'+
+      '<div id="assess-body-'+id+'" style="display:none;padding:12px 14px;border-top:1px solid var(--b100);background:var(--g50)">'+content+'</div>'+
+    '</div>';
+  }
+
+  return '<div class="divider"></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+      '<div class="sec-title" style="margin-bottom:0">🏥 Đánh giá lão khoa</div>'+
+      '<div style="display:flex;align-items:center;gap:8px">'+
+        '<button class="btn btn-secondary btn-sm" onclick="showCopyAssessModal()" id="copy-assess-btn" style="display:none">📋 Copy đánh giá lần trước</button>'+
+        '<span style="font-size:11px;color:var(--g400)">Tùy chọn — bấm để mở rộng</span>'+
+      '</div>'+
+    '</div>'+
+    section('cfs','CFS — Thang yếu lão (1–9)','cfs-score-txt','Chưa đánh giá',
+      '<div style="display:grid;grid-template-columns:repeat(9,1fr);gap:5px">'+cfsBtns+'</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin-top:3px">'+cfsLbls+'</div>')+
+    section('adl','ADL — Katz (hoạt động cơ bản)','adl-score-txt','—/6',adlRows)+
+    section('iadl','IADL — Lawton (hoạt động công cụ)','iadl-score-txt','—/8',iadlRows)+
+    section('mna','MNA-SF — Đánh giá dinh dưỡng (0–14 điểm)','mna-score-txt','—/14',mnaQs);
+}
+
+var ICD10_VN=[
+  ['A00','Tả'],['A01','Thương hàn và phó thương hàn'],['A02','Nhiễm khuẩn Salmonella khác'],['A04','Nhiễm khuẩn đường ruột do vi khuẩn khác'],['A06','Bệnh amip'],['A07','Bệnh đường ruột do protozoa khác'],['A08','Viêm dạ dày ruột do virus'],['A09','Tiêu chảy và viêm dạ dày ruột, nguyên nhân chưa xác định'],
+  ['A15','Lao phổi, xác nhận bằng vi khuẩn học'],['A16','Lao phổi, không xác nhận bằng vi khuẩn học'],['A17','Lao hệ thần kinh'],['A18','Lao các cơ quan khác'],['A19','Lao kê'],
+  ['A37','Ho gà'],['A40','Nhiễm khuẩn huyết liên cầu'],['A41','Nhiễm khuẩn huyết khác'],['A46','Quầng đỏ (Erysipelas)'],
+  ['B00','Nhiễm virus Herpes simplex'],['B01','Thủy đậu'],['B02','Zona (Herpes zoster)'],['B05','Sởi'],['B06','Rubella'],['B15','Viêm gan A cấp'],['B16','Viêm gan B cấp'],['B18','Viêm gan virus mạn tính'],['B19','Viêm gan virus không xác định'],['B24','Bệnh do HIV'],['B35','Da chân nấm'],['B37','Nhiễm Candida'],
+  ['C00','U ác tính môi'],['C15','U ác tính thực quản'],['C16','U ác tính dạ dày'],['C18','U ác tính đại tràng'],['C20','U ác tính trực tràng'],['C22','U ác tính gan'],['C25','U ác tính tụy'],['C34','U ác tính phế quản và phổi'],['C50','U ác tính vú'],['C53','U ác tính cổ tử cung'],['C61','U ác tính tuyến tiền liệt'],['C67','U ác tính bàng quang'],['C71','U ác tính não'],['C73','U ác tính tuyến giáp'],['C79','Di căn thứ phát'],['C80','U ác tính không xác định vị trí'],
+  ['D50','Thiếu máu do thiếu sắt'],['D51','Thiếu máu do thiếu vitamin B12'],['D64','Thiếu máu khác'],
+  ['E03','Suy giáp khác'],['E04','Bướu cổ không độc'],['E05','Cường giáp'],['E06','Viêm tuyến giáp'],['E10','Đái tháo đường type 1'],['E11','Đái tháo đường type 2'],['E14','Đái tháo đường không xác định'],['E11.0','Đái tháo đường type 2 có hôn mê'],['E11.5','Đái tháo đường type 2 có biến chứng mạch máu ngoại vi'],['E11.6','Đái tháo đường type 2 có biến chứng khác xác định'],['E11.9','Đái tháo đường type 2 không có biến chứng'],['E16','Rối loạn chuyển hóa glucose khác'],['E21','Cường cận giáp'],['E27','Rối loạn tuyến thượng thận khác'],['E55','Thiếu vitamin D'],['E66','Béo phì'],['E78','Rối loạn chuyển hóa lipoprotein'],['E78.0','Tăng cholesterol máu thuần túy'],['E78.1','Tăng triglycerid máu thuần túy'],['E78.5','Rối loạn lipid máu hỗn hợp'],['E87','Rối loạn điện giải và cân bằng acid-base'],['E87.1','Hạ natri máu'],['E87.5','Tăng kali máu'],['E87.6','Hạ kali máu'],
+  ['F00','Sa sút trí tuệ trong bệnh Alzheimer'],['F01','Sa sút trí tuệ do mạch máu'],['F03','Sa sút trí tuệ không xác định'],['F05','Mê sảng không do rượu và chất khác'],['F06','Rối loạn tâm thần khác do tổn thương não'],['F10','Rối loạn tâm thần do rượu'],['F17','Rối loạn tâm thần do thuốc lá'],['F20','Tâm thần phân liệt'],['F32','Giai đoạn trầm cảm'],['F33','Rối loạn trầm cảm tái phát'],['F40','Rối loạn lo âu ám ảnh sợ'],['F41','Rối loạn lo âu khác'],['F41.1','Rối loạn lo âu lan tỏa'],['F43','Phản ứng với stress nặng và rối loạn thích nghi'],['F51','Rối loạn giấc ngủ không do bệnh tâm thần'],
+  ['G20','Bệnh Parkinson'],['G30','Bệnh Alzheimer'],['G35','Xơ cứng rải rác'],['G40','Động kinh'],['G43','Đau nửa đầu (Migraine)'],['G45','Thiếu máu não thoáng qua (TIA)'],['G47','Rối loạn giấc ngủ'],['G47.3','Ngưng thở khi ngủ'],['G54','Bệnh rễ và đám rối thần kinh'],['G62','Bệnh đa dây thần kinh khác'],['G63','Bệnh đa dây thần kinh trong bệnh phân loại nơi khác'],
+  ['H25','Đục thủy tinh thể tuổi già'],['H26','Đục thủy tinh thể khác'],['H35','Rối loạn võng mạc khác'],['H40','Glôcôm'],['H52','Rối loạn khúc xạ và điều tiết'],['H61','Rối loạn tai ngoài khác'],['H65','Viêm tai giữa không mủ'],['H66','Viêm tai giữa có mủ'],['H90','Điếc dẫn truyền và thần kinh cảm âm'],['H91','Mất thính lực khác'],
+  ['I10','Tăng huyết áp nguyên phát'],['I11','Bệnh tim do tăng huyết áp'],['I12','Bệnh thận do tăng huyết áp'],['I13','Bệnh tim-thận do tăng huyết áp'],['I20','Đau thắt ngực'],['I20.0','Đau thắt ngực không ổn định'],['I20.9','Đau thắt ngực không xác định'],['I21','Nhồi máu cơ tim cấp'],['I22','Nhồi máu cơ tim tái phát'],['I25','Bệnh tim do thiếu máu cục bộ mạn tính'],['I25.1','Bệnh động mạch vành có xơ vữa'],['I26','Thuyên tắc phổi'],['I27','Các bệnh tim phổi khác'],['I34','Rối loạn van hai lá không do thấp'],['I35','Rối loạn van động mạch chủ không do thấp'],['I42','Bệnh cơ tim'],['I44','Blốc nhĩ thất và blốc bó His trái'],['I47','Nhịp tim nhanh kịch phát'],['I48','Rung nhĩ và cuồng nhĩ'],['I49','Rối loạn nhịp tim khác'],['I50','Suy tim'],['I50.0','Suy tim sung huyết'],['I50.1','Suy tim trái'],['I50.9','Suy tim không xác định'],['I51','Biến chứng và mô tả không rõ bệnh tim'],['I60','Xuất huyết dưới nhện'],['I61','Xuất huyết não'],['I63','Nhồi máu não'],['I64','Đột quỵ không xác định'],['I65','Tắc và hẹp động mạch não trước'],['I67','Bệnh mạch máu não khác'],['I69','Di chứng bệnh mạch máu não'],['I70','Xơ vữa động mạch'],['I73','Bệnh mạch máu ngoại vi khác'],['I77','Rối loạn động mạch và tiểu động mạch khác'],['I80','Viêm tĩnh mạch và huyết khối tĩnh mạch'],['I83','Giãn tĩnh mạch chi dưới'],['I87','Rối loạn tĩnh mạch khác'],
+  ['J00','Viêm mũi họng cấp (cảm thường)'],['J01','Viêm xoang cấp'],['J02','Viêm họng cấp'],['J03','Viêm amiđan cấp'],['J04','Viêm thanh quản và khí quản cấp'],['J06','Nhiễm khuẩn hô hấp trên cấp khác'],['J10','Cúm do virus cúm đã xác định'],['J11','Cúm, virus chưa xác định'],['J18','Viêm phổi, tác nhân chưa xác định'],['J20','Viêm phế quản cấp'],['J22','Nhiễm khuẩn hô hấp dưới cấp không xác định'],['J30','Viêm mũi dị ứng'],['J32','Viêm xoang mạn tính'],['J35','Bệnh mạn tính của amiđan và VA'],['J40','Viêm phế quản không xác định là cấp hay mạn'],['J41','Viêm phế quản mạn đơn giản và nhầy mủ'],['J42','Viêm phế quản mạn không xác định'],['J43','Khí phế thũng'],['J44','Bệnh phổi tắc nghẽn mạn tính (COPD)'],['J44.0','COPD đợt cấp do nhiễm khuẩn hô hấp'],['J44.1','COPD đợt cấp'],['J44.9','COPD không xác định'],['J45','Hen phế quản'],['J45.0','Hen dị ứng'],['J45.9','Hen không xác định'],['J46','Trạng thái hen ác tính'],['J47','Giãn phế quản'],['J68','Viêm phổi do hít'],['J80','Hội chứng suy hô hấp cấp (ARDS)'],['J81','Phù phổi'],['J90','Tràn dịch màng phổi'],['J93','Tràn khí màng phổi'],['J96','Suy hô hấp'],
+  ['K00','Rối loạn phát triển và mọc răng'],['K02','Sâu răng'],['K21','Bệnh trào ngược dạ dày thực quản (GERD)'],['K21.0','GERD có viêm thực quản'],['K25','Loét dạ dày'],['K26','Loét tá tràng'],['K27','Loét tiêu hóa không xác định'],['K29','Viêm dạ dày và tá tràng'],['K29.5','Viêm dạ dày mạn tính không xác định'],['K30','Khó tiêu'],['K35','Viêm ruột thừa cấp'],['K40','Thoát vị bẹn'],['K41','Thoát vị đùi'],['K43','Thoát vị thành bụng'],['K50','Bệnh Crohn'],['K51','Viêm đại tràng loét'],['K52','Viêm dạ dày ruột và viêm đại tràng không nhiễm khuẩn khác'],['K57','Bệnh túi thừa đường ruột'],['K58','Hội chứng ruột kích thích'],['K59','Rối loạn chức năng đường ruột khác'],['K59.0','Táo bón'],['K62','Bệnh hậu môn và trực tràng khác'],['K70','Bệnh gan do rượu'],['K72','Suy gan'],['K73','Viêm gan mạn tính'],['K74','Xơ hóa và xơ gan'],['K76','Bệnh gan khác'],['K76.0','Gan nhiễm mỡ'],['K80','Sỏi mật'],['K81','Viêm túi mật'],['K85','Viêm tụy cấp'],['K86','Bệnh tụy khác'],['K86.1','Viêm tụy mạn tính khác'],['K92','Bệnh hệ tiêu hóa khác'],['K92.1','Phân đen'],['K92.2','Xuất huyết tiêu hóa không xác định'],
+  ['L02','Áp xe da, nhọt và nhọt hậu bối'],['L03','Viêm mô tế bào'],['L20','Viêm da cơ địa'],['L22','Viêm da tã lót'],['L23','Viêm da tiếp xúc dị ứng'],['L25','Viêm da tiếp xúc không xác định'],['L30','Viêm da khác'],['L40','Vảy nến'],['L50','Mề đay'],['L60','Rối loạn móng'],['L89','Loét do đè ép (loét tì)'],['L98','Rối loạn da và mô dưới da khác'],
+  ['M05','Viêm khớp dạng thấp có yếu tố dạng thấp'],['M06','Viêm khớp dạng thấp khác'],['M08','Viêm khớp thiếu niên'],['M10','Gút'],['M15','Đa khớp hư'],['M16','Khớp háng hư'],['M17','Khớp gối hư'],['M19','Khớp hư khác'],['M25','Rối loạn khớp khác'],['M25.5','Đau khớp'],['M32','Lupus ban đỏ hệ thống'],['M41','Vẹo cột sống'],['M47','Thoái hóa cột sống'],['M48','Bệnh cột sống khác'],['M50','Bệnh đĩa đệm cổ'],['M51','Bệnh đĩa đệm khác'],['M51.1','Bệnh đĩa đệm thắt lưng có bệnh lý rễ'],['M54','Đau lưng'],['M54.5','Đau thắt lưng dưới'],['M54.3','Đau thần kinh tọa'],['M65','Viêm bao hoạt dịch và bao gân'],['M75','Tổn thương vai'],['M79','Rối loạn mô mềm khác'],['M80','Loãng xương có gãy xương bệnh lý'],['M81','Loãng xương không có gãy xương bệnh lý'],['M85','Rối loạn mật độ xương và cấu trúc xương khác'],
+  ['N00','Hội chứng viêm cầu thận cấp'],['N03','Hội chứng viêm cầu thận mạn tính'],['N04','Hội chứng thận hư'],['N10','Viêm thận bể thận cấp'],['N11','Viêm thận bể thận mạn tính'],['N17','Suy thận cấp'],['N18','Bệnh thận mạn tính (CKD)'],['N18.1','CKD giai đoạn 1'],['N18.2','CKD giai đoạn 2'],['N18.3','CKD giai đoạn 3'],['N18.4','CKD giai đoạn 4'],['N18.5','CKD giai đoạn 5'],['N19','Suy thận không xác định'],['N20','Sỏi thận và niệu quản'],['N21','Sỏi đường tiết niệu dưới'],['N28','Rối loạn thận và niệu quản khác'],['N30','Viêm bàng quang'],['N39','Rối loạn hệ tiết niệu khác'],['N39.0','Nhiễm khuẩn tiết niệu, không xác định vị trí'],['N40','Tăng sản lành tính tuyến tiền liệt (BPH)'],['N41','Bệnh viêm tuyến tiền liệt'],['N43','Tràn dịch tinh mạc và tinh dịch'],['N48','Bệnh dương vật khác'],['N60','Bệnh lành tính vú'],['N63','U vú không xác định'],['N80','Lạc nội mạc tử cung'],['N83','Rối loạn không viêm buồng trứng'],['N85','Rối loạn không viêm tử cung khác'],['N92','Kinh nguyệt nhiều, thường xuyên và không đều'],['N95','Rối loạn mãn kinh và quanh mãn kinh'],
+  ['Q21','Dị tật bẩm sinh vách ngăn tim'],
+  ['R00','Rối loạn nhịp tim'],['R00.0','Nhịp tim nhanh không xác định'],['R00.1','Nhịp tim chậm không xác định'],['R01','Tim đập mạnh và tiếng thổi'],['R04','Chảy máu từ đường hô hấp'],['R05','Ho'],['R06','Bất thường hô hấp'],['R07','Đau ngực'],['R09','Triệu chứng hô hấp và tim mạch khác'],['R10','Đau bụng'],['R11','Buồn nôn và nôn'],['R12','Ợ nóng'],['R13','Khó nuốt'],['R14','Đầy hơi và liên quan'],['R17','Vàng da không xác định'],['R19','Triệu chứng tiêu hóa khác'],['R20','Rối loạn cảm giác da'],['R22','Sưng nề khu trú da và mô dưới da'],['R25','Vận động bất thường'],['R26','Bất thường dáng đi và vận động'],['R27','Rối loạn phối hợp vận động khác'],['R29','Triệu chứng thần kinh và cơ xương khác'],['R30','Đau liên quan đến tiểu tiện'],['R31','Đái máu không xác định'],['R32','Tiểu không tự chủ'],['R33','Bí tiểu'],['R35','Đa niệu'],['R39','Triệu chứng hệ tiết niệu khác'],['R41','Rối loạn nhận thức và trí nhớ'],['R42','Chóng mặt'],['R50','Sốt không xác định nguyên nhân'],['R51','Đau đầu'],['R52','Đau không xác định'],['R53','Mệt mỏi và khó chịu'],['R55','Ngất'],['R56','Co giật không xếp loại nơi khác'],['R57','Sốc không xếp loại nơi khác'],['R60','Phù nề không xếp loại nơi khác'],['R62','Chậm phát triển bình thường'],['R63','Triệu chứng ăn uống'],['R63.4','Giảm cân bất thường'],['R68','Triệu chứng và dấu hiệu khác'],['R73','Glucose máu cao'],['R73.0','Rối loạn dung nạp glucose'],['R74','Bất thường enzyme huyết thanh'],['R79','Bất thường hóa học máu khác'],
+  ['S00','Chấn thương đầu nông'],['S06','Chấn thương nội sọ'],['S09','Chấn thương đầu khác'],['S20','Chấn thương lồng ngực nông'],['S22','Gãy xương sườn, xương ức và cột sống ngực'],['S30','Chấn thương bụng nông'],['S40','Chấn thương vai và cánh tay nông'],['S52','Gãy xương cẳng tay'],['S60','Chấn thương cổ tay và bàn tay nông'],['S62','Gãy xương cổ tay và bàn tay'],['S70','Chấn thương háng và đùi nông'],['S72','Gãy xương đùi'],['S72.0','Gãy cổ xương đùi'],['S80','Chấn thương cẳng chân nông'],['S82','Gãy xương cẳng chân'],['S90','Chấn thương cổ chân và bàn chân nông'],['S92','Gãy xương bàn chân'],
+  ['T14','Chấn thương vùng cơ thể không xác định'],['T36','Ngộ độc kháng sinh'],['T39','Ngộ độc thuốc giảm đau'],['T40','Ngộ độc thuốc gây mê và thuốc ngủ'],['T45','Ngộ độc thuốc đông máu và máu'],['T78','Phản ứng phụ không xác định'],['T78.1','Sốc phản vệ'],['T78.4','Dị ứng không xác định'],
+  ['W19','Ngã không xác định'],
+  ['Z00','Khám sức khỏe tổng quát'],['Z03','Theo dõi y tế vì nghi ngờ bệnh'],['Z04','Khám và theo dõi vì lý do khác'],['Z08','Tái khám sau điều trị ung thư'],['Z09','Tái khám sau điều trị bệnh khác'],['Z11','Khám sàng lọc bệnh nhiễm khuẩn'],['Z12','Sàng lọc ung thư'],['Z13','Sàng lọc bệnh khác'],['Z23','Tiêm chủng'],['Z29','Các biện pháp dự phòng khác'],['Z30','Quản lý tránh thai'],['Z34','Theo dõi thai nghén bình thường'],['Z51','Điều trị hỗ trợ y tế khác'],['Z54','Giai đoạn hồi phục'],['Z71','Tư vấn và hướng dẫn sức khỏe'],['Z74','Vấn đề liên quan đến phụ thuộc người chăm sóc'],['Z82','Tiền sử gia đình về bệnh'],['Z87','Tiền sử bản thân về bệnh'],['Z96','Sự có mặt của các cấy ghép chức năng khác'],['Z99','Phụ thuộc vào máy và các thiết bị hỗ trợ khác']
+].map(function(a){return{code:a[0],name:a[1]};});
+
+function icdSearch(q){
+  if(!q||q.length<2)return[];
+  q=q.toLowerCase().trim();
+  var res=ICD10_VN.filter(function(d){
+    return d.code.toLowerCase().indexOf(q)===0||d.name.toLowerCase().indexOf(q)>=0;
+  });
+  return res.slice(0,8);
+}
+function showIcdDropdown(inputId,hiddenId,dropId){
+  var inp=document.getElementById(inputId);
+  var drop=document.getElementById(dropId);
+  if(!inp||!drop)return;
+  var q=inp.value;
+  var results=icdSearch(q);
+  if(!results.length){drop.style.display='none';return;}
+  drop.innerHTML=results.map(function(d){
+    return '<div onclick="selectIcd(\''+inputId+'\',\''+hiddenId+'\',\''+dropId+'\',\''+d.code+'\',\''+d.name.replace(/'/g,"\\'")+'\')" '+
+      'style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--g100);font-size:13px;display:flex;gap:10px;align-items:center" '+
+      'onmouseover="this.style.background=\'var(--b50)\'" onmouseout="this.style.background=\'white\'">'+
+      '<span style="font-weight:700;color:var(--b600);min-width:56px;font-size:12px">'+d.code+'</span>'+
+      '<span>'+d.name+'</span></div>';
+  }).join('');
+  drop.style.display='block';
+}
+function selectIcd(inputId,hiddenId,dropId,code,name){
+  var inp=document.getElementById(inputId);
+  var hid=document.getElementById(hiddenId);
+  var drop=document.getElementById(dropId);
+  if(inp)inp.value=name;
+  if(hid)hid.value=code;
+  if(drop)drop.style.display='none';
+  // Show badge
+  var badge=document.getElementById(hiddenId+'-badge');
+  if(badge){badge.textContent=code;badge.style.display='inline-flex';}
+}
+function clearIcdBadge(hiddenId){
+  var hid=document.getElementById(hiddenId);
+  var badge=document.getElementById(hiddenId+'-badge');
+  if(hid)hid.value='';
+  if(badge){badge.textContent='';badge.style.display='none';}
+}
+// ── Move up/down utility ─────────────────────────────────────
+function moveEl(id, dir) {
+  var el = document.getElementById(id); if (!el) return;
+  var parent = el.parentNode;
+  if (dir === -1) { // lên
+    var prev = el.previousElementSibling;
+    if (prev) parent.insertBefore(el, prev);
+  } else { // xuống
+    var next = el.nextElementSibling;
+    if (next) parent.insertBefore(next, el);
+  }
+}
+// ─────────────────────────────────────────────────────────────
+
+var dxRows=[];
+
+function resetDxRows(){dxRows=[];}
+
+function addDxRow(containerId,name,code,note){
+  var id='dx_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+  dxRows.push(id);
+  var d=document.createElement('div');
+  d.id=id;
+  d.style.cssText='background:var(--g50);border:1px solid var(--g100);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px';
+  d.innerHTML=
+    '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px">'+
+      '<div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;padding-top:4px">'+
+        '<button onclick="moveEl(\''+id+'\',-1)" title="Lên" style="width:24px;height:20px;border:1px solid var(--g200);background:white;border-radius:4px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;color:var(--g600)">▲</button>'+
+        '<button onclick="moveEl(\''+id+'\',1)" title="Xuống" style="width:24px;height:20px;border:1px solid var(--g200);background:white;border-radius:4px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;color:var(--g600)">▼</button>'+
+      '</div>'+
+      '<div style="flex:1;position:relative">'+
+        '<input class="fc" id="'+id+'_n" value="'+(name?esc(name):'')+'" placeholder="Nhập tên bệnh hoặc mã ICD-10..." '+
+          'onblur="setTimeout(function(){var d=document.getElementById(\''+id+'_drop\');if(d)d.style.display=\'none\'},200)" '+
+          'style="background:white;padding-right:'+(code?'70px':'12px')+'">'+
+        '<input type="hidden" id="'+id+'_c" value="'+(code||'')+'">'+
+        (code?'<span id="'+id+'_badge" class="badge bb" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none">'+esc(code)+'</span>':
+              '<span id="'+id+'_badge" class="badge bb" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;display:none"></span>')+
+        '<div id="'+id+'_drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--g200);border-radius:var(--rs);box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:200;max-height:240px;overflow-y:auto"></div>'+
+      '</div>'+
+      '<button onclick="rmDxRow(\''+id+'\')" style="width:34px;height:38px;border:1px solid #fecaca;background:#fee2e2;color:#b91c1c;border-radius:var(--rs);cursor:pointer;font-size:16px;flex-shrink:0" title="Xóa">✕</button>'+
+    '</div>'+
+    '<input class="fc" id="'+id+'_note" value="'+(note?esc(note):'')+'" placeholder="Ghi chú chi tiết cho chẩn đoán này (mức độ, giai đoạn, biến chứng...)" style="background:white;font-size:12px;color:var(--g600)">'+
+  '';
+  document.getElementById(containerId).appendChild(d);
+  // Wire up ICD search
+  var inp=document.getElementById(id+'_n');
+  if(inp){
+    inp.addEventListener('input',function(){
+      var badge=document.getElementById(id+'_badge');
+      var hid=document.getElementById(id+'_c');
+      if(badge){badge.style.display='none';}
+      if(hid){hid.value='';}
+      inp.style.paddingRight='12px';
+      showIcdDropdown(id+'_n',id+'_c',id+'_drop');
+    });
+  }
+}
+
+function rmDxRow(id){
+  var el=document.getElementById(id);if(el)el.remove();
+  dxRows=dxRows.filter(function(x){return x!==id;});
+}
+
+// Override selectIcd to also update badge inside row
+var _origSelectIcd=selectIcd;
+function selectIcd(inputId,hiddenId,dropId,code,name){
+  var inp=document.getElementById(inputId);
+  var hid=document.getElementById(hiddenId);
+  var drop=document.getElementById(dropId);
+  if(inp){inp.value=name;inp.style.paddingRight=code?'70px':'12px';}
+  if(hid)hid.value=code;
+  if(drop)drop.style.display='none';
+  var badge=document.getElementById(hiddenId+'-badge')||document.getElementById(hiddenId.replace('_c','_badge'));
+  if(badge){badge.textContent=code;badge.style.display=code?'inline-flex':'none';}
+}
+
+function readDxRows(containerId){
+  var results=[];
+  var rows=document.getElementById(containerId);
+  if(!rows)return results;
+  rows.querySelectorAll('[id^="dx_"]').forEach(function(row){
+    var rowId=row.id;
+    var nameEl=document.getElementById(rowId+'_n');
+    var codeEl=document.getElementById(rowId+'_c');
+    var noteEl=document.getElementById(rowId+'_note');
+    if(nameEl&&nameEl.value.trim()){
+      results.push({name:nameEl.value.trim(),code:codeEl?codeEl.value.trim():'',note:noteEl?noteEl.value.trim():''});
+    }
+  });
+  return results;
+}
+
+function rDxContainer(containerId,existing){
+  var html='<div class="fg">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+      '<label class="fl" style="margin-bottom:0">Chẩn đoán * <span style="font-size:11px;color:var(--g400);font-weight:400">(có thể thêm nhiều)</span></label>'+
+      '<div style="display:flex;gap:6px">'+
+        '<button class="btn btn-secondary btn-sm" onclick="showCopyDxModal()" id="copy-dx-btn" style="display:none">📋 Copy chẩn đoán lần trước</button>'+
+        '<button class="btn btn-secondary btn-sm" onclick="addDxRow(\''+containerId+'\')">+ Thêm chẩn đoán</button>'+
+      '</div>'+
+    '</div>'+
+    '<div id="'+containerId+'"></div>'+
+  '</div>';
+  return html;
+}
+
+function rIcdField(inputId,hiddenId,dropId,val,icdCode){
+  return '<div class="fg" style="position:relative">'+
+    '<label class="fl">Chẩn đoán *'+
+      (icdCode?'<span id="'+hiddenId+'-badge" class="badge bb" style="margin-left:8px;font-size:11px">'+icdCode+'</span>':
+               '<span id="'+hiddenId+'-badge" class="badge bb" style="margin-left:8px;font-size:11px;display:none"></span>')+
+    '</label>'+
+    '<input type="hidden" id="'+hiddenId+'" value="'+(icdCode||'')+'">'+
+    '<input class="fc" id="'+inputId+'" value="'+(val?esc(val):'')+'" placeholder="Nhập chẩn đoán hoặc mã ICD-10 để tìm..." '+
+      'oninput="showIcdDropdown(\''+inputId+'\',\''+hiddenId+'\',\''+dropId+'\');clearIcdBadge(\''+hiddenId+'\')" '+
+      'onblur="setTimeout(function(){var d=document.getElementById(\''+dropId+'\');if(d)d.style.display=\'none\'},200)">'+
+    '<div id="'+dropId+'" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--g200);border-radius:var(--rs);box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:100;max-height:280px;overflow-y:auto"></div>'+
+  '</div>';
+}
+
+function rNewVisit(){
+  medRows=[];testRows=[];resetAssessState();resetDxRows();
+  return '<div class="card" style="max-width:780px"><div class="card-header"><h3>📋 Phiếu khám bệnh mới</h3></div><div style="padding:22px">'+
+    '<div class="grid-2"><div class="fg"><label class="fl">Chọn bệnh nhân *</label><select class="fc" id="nv-pid" onchange="updateCopyBtns(this.value)"><option value="">-- Chọn bệnh nhân --</option>'+
+    db.patients.map(function(p){return '<option value="'+p.id+'"'+(selectedPid===p.id?' selected':'')+'>'+esc(p.name)+' — '+esc(p.phone||'')+'</option>'}).join('')+'</select></div>'+
+    '<div class="fg"><label class="fl">Ngày khám *</label><input type="date" class="fc" id="nv-date" value="'+new Date().toISOString().slice(0,10)+'"></div></div>'+
+    '<div class="divider"></div><div class="sec-title">💓 Sinh hiệu</div>'+
+    '<div class="grid-3" style="margin-bottom:4px">'+
+      '<div class="fg"><label class="fl">Huyết áp (mmHg)</label><input class="fc" id="nv-bp" placeholder="120/80"></div>'+
+      '<div class="fg"><label class="fl">Nhịp tim (lần/phút)</label><input class="fc" id="nv-hr" type="number" placeholder="72"></div>'+
+      '<div class="fg"><label class="fl">Nhiệt độ (°C)</label><input class="fc" id="nv-temp" type="number" step="0.1" placeholder="36.8"></div>'+
+      '<div class="fg"><label class="fl">SpO₂ (%)</label><input class="fc" id="nv-spo2" type="number" placeholder="99"></div>'+
+      '<div class="fg"><label class="fl">Cân nặng (kg)</label><input class="fc" id="nv-weight" type="number" step="0.1" placeholder="60"></div>'+
+      '<div class="fg"><label class="fl">Chiều cao (cm)</label><input class="fc" id="nv-height" type="number" placeholder="165"></div>'+
+    '</div><div class="divider"></div>'+
+    '<div class="fg"><label class="fl">Lý do khám / Triệu chứng *</label><textarea class="fc" id="nv-cc" rows="2" placeholder="Bệnh nhân đến khám vì..."></textarea></div>'+
+    rDxContainer('nv-dx-list')+
+    '<div class="fg"><label class="fl">Ghi chú bác sĩ</label><textarea class="fc" id="nv-note" rows="2"></textarea></div>'+
+    '<div class="divider"></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div class="sec-title" style="margin-bottom:0">💊 Đơn thuốc</div><button class="btn btn-secondary btn-sm" onclick="showCopyMedModal()" id="copy-med-btn" style="display:none">📋 Copy toa lần trước</button></div>'+
+    '<div id="med-rows"></div>'+
+    '<button class="btn btn-secondary btn-sm" onclick="addMed()" style="margin-bottom:18px">+ Thêm thuốc</button>'+
+    '<div class="divider"></div><div class="sec-title">🔬 Cận lâm sàng</div><div id="test-rows"></div>'+
+    '<button class="btn btn-secondary btn-sm" onclick="addTest()" style="margin-bottom:18px">+ Thêm xét nghiệm / CĐHA</button>'+
+    '<div class="divider"></div><div class="fg"><label class="fl">Ngày tái khám</label><input type="date" class="fc" id="nv-fu" style="max-width:220px"></div>'+
+    rAssessHTML()+
+    '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px"><button class="btn btn-secondary" onclick="setView(\'patients\')">Hủy</button><button class="btn btn-primary" onclick="saveVisit()">💾 Lưu phiếu khám</button></div>'+
+  '</div></div>';
+}
+
+function addMed(){
+  var idx=medRows.length+1;
+  var id='m'+Date.now()+'_'+idx;medRows.push(id);
+  var d=document.createElement('div');d.id=id;
+  d.style.cssText='background:var(--b50);border:1.5px solid var(--b100);border-radius:var(--rs);padding:12px 14px;margin-bottom:10px';
+  d.innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+      '<div style="display:flex;align-items:center;gap:8px">'+
+        '<div style="display:flex;gap:2px">'+
+          '<button onclick="moveEl(\''+id+'\',-1)" title="Lên" style="width:22px;height:22px;border:1px solid var(--b200);background:white;border-radius:4px;cursor:pointer;font-size:10px;color:var(--b600);display:flex;align-items:center;justify-content:center">▲</button>'+
+          '<button onclick="moveEl(\''+id+'\',1)" title="Xuống" style="width:22px;height:22px;border:1px solid var(--b200);background:white;border-radius:4px;cursor:pointer;font-size:10px;color:var(--b600);display:flex;align-items:center;justify-content:center">▼</button>'+
+        '</div>'+
+        '<span style="font-size:12px;font-weight:700;color:var(--b800);text-transform:uppercase;letter-spacing:0.4px">💊 Thuốc '+idx+'</span>'+
+      '</div>'+
+      '<button onclick="rmEl(\''+id+'\')" style="width:24px;height:24px;border:1px solid #fecaca;background:#fee2e2;color:#b91c1c;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
+      '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px">Tên thuốc *</label><input class="fc" id="'+id+'_n" placeholder="VD: Amoxicillin 500mg" style="background:white"></div>'+
+      '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px">Dạng dùng</label>'+
+        '<select class="fc" id="'+id+'_form" style="background:white">'+
+          '<option value="viên">Viên (uống)</option>'+
+          '<option value="gói">Gói (pha)</option>'+
+          '<option value="ống">Ống (tiêm/truyền)</option>'+
+          '<option value="ml">ml (siro/nhỏ giọt)</option>'+
+          '<option value="lần">Lần (bôi/xịt)</option>'+
+        '</select>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:100px 100px 1fr 100px;gap:10px;margin-bottom:8px;align-items:end">'+
+      '<div>'+
+        '<label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px">Số lượng/lần</label>'+
+        '<div style="position:relative">'+
+          '<input class="fc" id="'+id+'_qty" type="number" min="0.5" step="0.5" value="1" style="background:white;text-align:center;font-weight:700;font-size:16px;color:var(--b900);padding-right:4px">'+
+          '<span id="'+id+'_qty_lbl" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--b600);pointer-events:none">viên</span>'+
+        '</div>'+
+      '</div>'+
+      '<div>'+
+        '<label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px">Số lần/ngày</label>'+
+        '<div style="position:relative">'+
+          '<input class="fc" id="'+id+'_freq" type="number" min="1" max="6" step="1" value="2" style="background:white;text-align:center;font-weight:700;font-size:16px;color:var(--b900)">'+
+          '<span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--b600);pointer-events:none">lần</span>'+
+        '</div>'+
+      '</div>'+
+      '<div>'+
+        '<label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px">Buổi uống</label>'+
+        '<div style="display:flex;gap:5px;flex-wrap:wrap;padding-top:4px">'+
+          '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 9px;background:white;border:1px solid var(--b200);border-radius:20px;color:var(--b800);white-space:nowrap"><input type="checkbox" id="'+id+'_ts" value="Sáng" style="width:13px;height:13px;accent-color:var(--b600)"> Sáng</label>'+
+          '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 9px;background:white;border:1px solid var(--b200);border-radius:20px;color:var(--b800);white-space:nowrap"><input type="checkbox" id="'+id+'_ttr" value="Trưa" style="width:13px;height:13px;accent-color:var(--b600)"> Trưa</label>'+
+          '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 9px;background:white;border:1px solid var(--b200);border-radius:20px;color:var(--b800);white-space:nowrap"><input type="checkbox" id="'+id+'_tc" value="Chiều" style="width:13px;height:13px;accent-color:var(--b600)"> Chiều</label>'+
+          '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 9px;background:white;border:1px solid var(--b200);border-radius:20px;color:var(--b800);white-space:nowrap"><input type="checkbox" id="'+id+'_tt" value="Tối" style="width:13px;height:13px;accent-color:var(--b600)"> Tối</label>'+
+        '</div>'+
+      '</div>'+
+      '<div>'+
+        '<label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px">Số ngày</label>'+
+        '<div style="position:relative">'+
+          '<input class="fc" id="'+id+'_dur" type="number" min="1" value="7" style="background:white;text-align:center;font-weight:700;font-size:16px;color:var(--b900)">'+
+          '<span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--b600);pointer-events:none">ngày</span>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px">Ghi chú (uống trước/sau ăn...)</label><input class="fc" id="'+id+'_note" placeholder="VD: Uống sau ăn, không nghiền viên" style="background:white"></div>';
+  // Sync unit label when form changes
+  var formEl=d.querySelector('#'+id+'_form');
+  var lblEl=d.querySelector('#'+id+'_qty_lbl');
+  if(formEl&&lblEl){formEl.addEventListener('change',function(){lblEl.textContent=this.value});}
+  document.getElementById('med-rows').appendChild(d);
+}
+function addTest(){var id='t'+Date.now();testRows.push(id);var d=document.createElement('div');d.id=id;d.style.cssText='display:grid;grid-template-columns:2fr 2fr 120px 38px;gap:8px;margin-bottom:8px;align-items:center';d.innerHTML='<input class="fc" id="'+id+'_n" placeholder="Tên xét nghiệm/CĐHA"><input class="fc" id="'+id+'_r" placeholder="Kết quả (nếu có)"><select class="fc" id="'+id+'_s"><option value="pending">⏳ Chờ KQ</option><option value="done">✓ Có KQ</option></select><button onclick="rmEl(\''+id+'\')" style="width:38px;height:38px;border:1px solid #fecaca;background:#fee2e2;color:#b91c1c;border-radius:var(--rs);cursor:pointer;font-size:16px">✕</button>';document.getElementById('test-rows').appendChild(d);}
+function rmEl(id){var e=document.getElementById(id);if(e)e.remove();medRows=medRows.filter(function(x){return x!==id});testRows=testRows.filter(function(x){return x!==id});}
+
+function saveVisit(){
+  var pid=gv('nv-pid'),date=gv('nv-date'),cc=gv('nv-cc');
+  var diagnoses=readDxRows('nv-dx-list');
+  if(!pid||!date||!cc||!diagnoses.length){showAlert('⚠ Vui lòng điền đầy đủ các trường bắt buộc (*) và ít nhất một chẩn đoán');return;}
+  var dx=diagnoses.map(function(d){return d.name;}).join('; ');
+  var icdCode=diagnoses.map(function(d){return d.code;}).filter(Boolean).join(', ');
+  var vitals={bp:gv('nv-bp'),hr:gv('nv-hr'),temp:gv('nv-temp'),spo2:gv('nv-spo2'),weight:gv('nv-weight'),height:gv('nv-height')};
+  var meds=medRows.map(function(id){
+    var form_el=document.getElementById(id+'_form');
+    var form=form_el?form_el.value:'viên';
+    var timing=[];
+    ['ts','ttr','tc','tt'].forEach(function(k){var el=document.getElementById(id+'_'+k);if(el&&el.checked)timing.push(el.value);});
+    return{name:gv(id+'_n'),form:form,qty:gv(id+'_qty'),freq:gv(id+'_freq'),timing:timing.join(', '),duration:gv(id+'_dur'),note:gv(id+'_note')};
+  }).filter(function(m){return m.name});
+  var tests=testRows.map(function(id){var s=document.getElementById(id+'_s');return{name:gv(id+'_n'),result:gv(id+'_r'),status:s?s.value:'pending'}}).filter(function(t){return t.name});
+  var vis={id:uid(),patientId:pid,date:date,chiefComplaint:cc,vitals:vitals,diagnosis:dx,icdCode:icdCode,diagnoses:diagnoses,note:gv('nv-note'),medications:meds,tests:tests,followUp:gv('nv-fu'),assessments:readAssessFromForm()};
+  expanded[vis.id]=true;
+  dbAddV(vis,function(){notify('✅ Đã lưu phiếu khám');setView('patient',pid);});
+}
+function goNV(pid){
+  selectedPid=pid;setView('newvisit');
+  setTimeout(function(){
+    var s=document.getElementById('nv-pid');if(s)s.value=pid;
+    addDxRow('nv-dx-list');
+    updateCopyBtns(pid);
+  },50);
+}
+
+function updateCopyBtns(pid){
+  var btnMed=document.getElementById('copy-med-btn');
+  var btnDx=document.getElementById('copy-dx-btn');
+  var btnAssess=document.getElementById('copy-assess-btn');
+  var prevVisits=db.visits.filter(function(v){return v.patientId===pid;})
+    .sort(function(a,b){return b.date.localeCompare(a.date);});
+  var prevWithMeds=prevVisits.filter(function(v){return v.medications&&v.medications.length;});
+  var prevWithDx=prevVisits.filter(function(v){return (v.diagnoses&&v.diagnoses.length)||(v.diagnosis);});
+  var prevWithAssess=prevVisits.filter(function(v){return v.assessments&&(v.assessments.cfs!=null||v.assessments.adl||v.assessments.iadl||v.assessments.mna);});
+  if(btnMed)btnMed.style.display=prevWithMeds.length?'inline-flex':'none';
+  if(btnDx)btnDx.style.display=prevWithDx.length?'inline-flex':'none';
+  if(btnAssess)btnAssess.style.display=prevWithAssess.length?'inline-flex':'none';
+}
+
+function showCopyAssessModal(){
+  var pid=document.getElementById('nv-pid')?document.getElementById('nv-pid').value:'';
+  if(!pid){showAlert('⚠ Vui lòng chọn bệnh nhân trước');return;}
+  var prevVisits=db.visits.filter(function(v){
+    return v.patientId===pid&&v.assessments&&(v.assessments.cfs!=null||v.assessments.adl||v.assessments.iadl||v.assessments.mna);
+  }).sort(function(a,b){return b.date.localeCompare(a.date);});
+  if(!prevVisits.length){showAlert('Bệnh nhân này chưa có đánh giá lão khoa nào');return;}
+  var rows=prevVisits.map(function(v){
+    var a=v.assessments;var parts=[];
+    if(a.cfs!=null)parts.push('CFS '+a.cfs+'/9');
+    if(a.adl&&a.adl.score!=null)parts.push('ADL '+a.adl.score+'/6');
+    if(a.iadl&&a.iadl.score!=null)parts.push('IADL '+a.iadl.score+'/8');
+    if(a.mna&&a.mna.score!=null)parts.push('MNA-SF '+a.mna.score+'/14');
+    return '<div onclick="copyAssess(\''+v.id+'\')" style="padding:12px 16px;border-bottom:1px solid var(--g100);cursor:pointer;transition:background 0.15s" onmouseover="this.style.background=\'var(--b50)\'" onmouseout="this.style.background=\'white\'">'+
+      '<div style="font-weight:600;color:var(--b900);font-size:13px;margin-bottom:4px">📅 '+fd(v.date)+'</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+parts.map(function(p){return'<span class="badge bb" style="font-size:11px">'+p+'</span>';}).join('')+'</div>'+
+      '<div style="font-size:11px;color:var(--b600);margin-top:4px;font-weight:500">Bấm để copy</div>'+
+    '</div>';
+  }).join('');
+  openModal(
+    '<div class="modal-header"><h3>📋 Chọn đánh giá lão khoa để copy</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-body" style="padding:0"><div style="max-height:400px;overflow-y:auto">'+rows+'</div></div>'+
+    '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Hủy</button></div>'
+  );
+}
+
+function copyAssess(vid){
+  var v=db.visits.find(function(x){return x.id===vid;});
+  if(!v||!v.assessments)return;
+  var a=v.assessments;
+  resetAssessState();
+  // Mở các section có dữ liệu và điền vào
+  if(a.cfs!=null){
+    var body=document.getElementById('assess-body-cfs');
+    var icon=document.getElementById('assess-icon-cfs');
+    if(body)body.style.display='block';if(icon)icon.textContent='▲';
+    setCFS(a.cfs);
+  }
+  if(a.adl&&a.adl.items){
+    var body=document.getElementById('assess-body-adl');
+    var icon=document.getElementById('assess-icon-adl');
+    if(body)body.style.display='block';if(icon)icon.textContent='▲';
+    a.adl.items.forEach(function(val,i){if(val!==null)setADL(i,val);});
+  }
+  if(a.iadl&&a.iadl.items){
+    var body=document.getElementById('assess-body-iadl');
+    var icon=document.getElementById('assess-icon-iadl');
+    if(body)body.style.display='block';if(icon)icon.textContent='▲';
+    a.iadl.items.forEach(function(val,i){if(val!==null)setIADL(i,val);});
+  }
+  if(a.mna&&a.mna.answers){
+    var body=document.getElementById('assess-body-mna');
+    var icon=document.getElementById('assess-icon-mna');
+    if(body)body.style.display='block';if(icon)icon.textContent='▲';
+    Object.keys(a.mna.answers).forEach(function(q){if(a.mna.answers[q]!==null)setMNA(q,a.mna.answers[q]);});
+  }
+  closeModal();
+  notify('✅ Đã copy đánh giá lão khoa từ lần khám '+fd(v.date));
+}
+
+function showCopyDxModal(){
+  var pid=document.getElementById('nv-pid')?document.getElementById('nv-pid').value:'';
+  if(!pid){showAlert('⚠ Vui lòng chọn bệnh nhân trước');return;}
+  var prevVisits=db.visits.filter(function(v){
+    return v.patientId===pid&&((v.diagnoses&&v.diagnoses.length)||(v.diagnosis));
+  }).sort(function(a,b){return b.date.localeCompare(a.date);});
+  if(!prevVisits.length){showAlert('Bệnh nhân này chưa có chẩn đoán nào');return;}
+  var rows=prevVisits.map(function(v){
+    var dxList=v.diagnoses&&v.diagnoses.length?v.diagnoses:(v.diagnosis?[{name:v.diagnosis,code:v.icdCode||'',note:''}]:[]);
+    var names=dxList.map(function(d){return d.name;}).join(', ');
+    return '<div onclick="copyDx(\''+v.id+'\')" style="padding:12px 16px;border-bottom:1px solid var(--g100);cursor:pointer;transition:background 0.15s" onmouseover="this.style.background=\'var(--b50)\'" onmouseout="this.style.background=\'white\'">'+
+      '<div style="font-weight:600;color:var(--b900);font-size:13px;margin-bottom:3px">📅 '+fd(v.date)+'</div>'+
+      '<div style="font-size:12px;color:var(--g600)">'+esc(names.length>70?names.slice(0,70)+'...':names)+'</div>'+
+      '<div style="font-size:11px;color:var(--b600);margin-top:4px;font-weight:500">'+dxList.length+' chẩn đoán — Bấm để copy</div>'+
+    '</div>';
+  }).join('');
+  openModal(
+    '<div class="modal-header"><h3>📋 Chọn chẩn đoán để copy</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-body" style="padding:0"><div style="max-height:400px;overflow-y:auto">'+rows+'</div></div>'+
+    '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Hủy</button></div>'
+  );
+}
+
+function copyDx(vid){
+  var v=db.visits.find(function(x){return x.id===vid;});
+  if(!v)return;
+  var dxList=v.diagnoses&&v.diagnoses.length?v.diagnoses:(v.diagnosis?[{name:v.diagnosis,code:v.icdCode||'',note:''}]:[]);
+  if(!dxList.length)return;
+  // Xóa chẩn đoán cũ
+  var container=document.getElementById('nv-dx-list');
+  if(container){
+    Array.from(container.children).forEach(function(el){el.remove();});
+    dxRows=[];
+  }
+  // Thêm từng chẩn đoán
+  dxList.forEach(function(d){
+    addDxRow('nv-dx-list',d.name,d.code,d.note||'');
+  });
+  closeModal();
+  notify('✅ Đã copy '+dxList.length+' chẩn đoán từ lần khám '+fd(v.date));
+}
+
+function showCopyMedModal(){
+  var pid=document.getElementById('nv-pid')?document.getElementById('nv-pid').value:'';
+  if(!pid){showAlert('⚠ Vui lòng chọn bệnh nhân trước');return;}
+  var prevVisits=db.visits.filter(function(v){return v.patientId===pid&&v.medications&&v.medications.length;})
+    .sort(function(a,b){return b.date.localeCompare(a.date);});
+  if(!prevVisits.length){showAlert('Bệnh nhân này chưa có toa thuốc nào');return;}
+  var rows=prevVisits.map(function(v){
+    var names=v.medications.map(function(m){return m.name;}).join(', ');
+    return '<div onclick="copyMeds(\''+v.id+'\')" style="padding:12px 16px;border-bottom:1px solid var(--g100);cursor:pointer;transition:background 0.15s" onmouseover="this.style.background=\'var(--b50)\'" onmouseout="this.style.background=\'white\'">'+
+      '<div style="font-weight:600;color:var(--b900);font-size:13px;margin-bottom:3px">📅 '+fd(v.date)+'</div>'+
+      '<div style="font-size:12px;color:var(--g600)">'+esc(names.length>60?names.slice(0,60)+'...':names)+'</div>'+
+      '<div style="font-size:11px;color:var(--b600);margin-top:4px;font-weight:500">'+v.medications.length+' loại thuốc — Bấm để copy</div>'+
+    '</div>';
+  }).join('');
+  openModal(
+    '<div class="modal-header"><h3>📋 Chọn toa thuốc để copy</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-body" style="padding:0"><div style="max-height:400px;overflow-y:auto">'+rows+'</div></div>'+
+    '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Hủy</button></div>'
+  );
+}
+
+function copyMeds(vid){
+  var v=db.visits.find(function(x){return x.id===vid;});
+  if(!v||!v.medications)return;
+  document.querySelectorAll('#med-rows > [id]').forEach(function(el){el.remove();});
+  medRows=[];
+  v.medications.forEach(function(m){
+    addMed();
+    var id=medRows[medRows.length-1];
+    var nameEl=document.getElementById(id+'_n');if(nameEl)nameEl.value=m.name||'';
+    var formEl=document.getElementById(id+'_form');if(formEl)formEl.value=m.form||'viên';
+    var qtyEl=document.getElementById(id+'_qty');if(qtyEl)qtyEl.value=m.qty||1;
+    var freqEl=document.getElementById(id+'_freq');if(freqEl)freqEl.value=m.freq||2;
+    var durEl=document.getElementById(id+'_dur');if(durEl)durEl.value=m.duration||7;
+    var noteEl=document.getElementById(id+'_note');if(noteEl)noteEl.value=m.note||'';
+    var timings=(m.timing||'').split(',').map(function(t){return t.trim();});
+    [['ts','Sáng'],['ttr','Trưa'],['tc','Chiều'],['tt','Tối']].forEach(function(pair){
+      var cb=document.getElementById(id+'_'+pair[0]);
+      if(cb)cb.checked=timings.indexOf(pair[1])>=0;
+    });
+    var lbl=document.getElementById(id+'_qty_lbl');if(lbl&&formEl)lbl.textContent=formEl.value;
+  });
+  closeModal();
+  notify('✅ Đã copy '+v.medications.length+' loại thuốc từ lần khám '+fd(v.date));
+}
+
+function showPatientLinkModal(pid){
+  var p=db.patients.find(function(x){return x.id===pid;});if(!p)return;
+  if(!useSupabase){showAlert('⚠ Cần kết nối Supabase để dùng tính năng này.');return;}
+  var baseUrl=window.location.origin+window.location.pathname.replace('medclinic.html','')+'patient-form.html';
+  var link=baseUrl+'?pid='+encodeURIComponent(pid)+'&sb='+encodeURIComponent(sbUrl)+'&key='+encodeURIComponent(sbKey);
+  openModal(
+    '<div class="modal-header"><h3>📲 Link theo dõi — '+esc(p.name)+'</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-body">'+
+      '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;font-size:13px;color:#166534">'+
+        '✅ Gửi link này cho <strong>'+esc(p.name)+'</strong> qua Zalo/SMS.<br>Bệnh nhân mở link trên điện thoại, điền sinh hiệu và gửi về cho bạn.'+
+      '</div>'+
+      '<div class="fg"><label class="fl">Link của bệnh nhân</label>'+
+        '<div style="display:flex;gap:8px">'+
+          '<input class="fc" id="patient-link-input" value="'+link+'" readonly style="font-size:11px;color:var(--g600);cursor:pointer" onclick="this.select()">'+
+          '<button class="btn btn-primary" onclick="copyPatientLink()" style="white-space:nowrap" id="copy-link-btn">📋 Copy</button>'+
+        '</div>'+
+      '</div>'+
+      '<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:var(--rs);padding:10px 14px;font-size:12px;color:#92400e;margin-top:10px">'+
+        '⚠ <strong>Lưu ý:</strong> File <code>patient-form.html</code> cần được upload lên cùng thư mục với <code>medclinic.html</code> trên Netlify.'+
+      '</div>'+
+    '</div>'+
+    '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Đóng</button></div>'
+  );
+}
+
+function copyPatientLink(){
+  var inp=document.getElementById('patient-link-input');
+  var btn=document.getElementById('copy-link-btn');
+  if(inp){inp.select();document.execCommand('copy');btn.textContent='✅ Đã copy!';setTimeout(function(){btn.textContent='📋 Copy';},2000);}
+}
+
+function showAddModal(){
+  openModal('<div class="modal-header"><h3>➕ Thêm bệnh nhân mới</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  '<div class="modal-body"><div class="grid-2">'+
+    '<div class="fg"><label class="fl">Họ và tên *</label><input class="fc" id="ap-n" placeholder="Nguyễn Văn A"></div>'+
+    '<div class="fg"><label class="fl">Ngày sinh</label><input type="date" class="fc" id="ap-dob"></div>'+
+    '<div class="fg"><label class="fl">Giới tính</label><select class="fc" id="ap-g"><option>Nam</option><option>Nữ</option><option>Khác</option></select></div>'+
+    '<div class="fg"><label class="fl">Số điện thoại</label><input class="fc" id="ap-ph" type="tel" placeholder="09xxxxxxxx"></div>'+
+    '<div class="fg"><label class="fl">Nhóm máu</label><select class="fc" id="ap-bl"><option value="">Không rõ</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>'+
+    '<div class="fg"><label class="fl">Nghề nghiệp</label><input class="fc" id="ap-job"></div>'+
+  '</div>'+
+  '<div class="fg"><label class="fl">Số nhà, tên đường</label><input class="fc" id="ap-street" placeholder="VD: 123 Nguyễn Trãi, P.3"></div>'+
+  '<div class="fg"><label class="fl">Tỉnh / Thành phố</label><select class="fc" id="ap-province"><option value="">-- Chọn tỉnh/thành --</option>'+provinceOpts('')+'</select></div>'+
+  '<div class="fg"><label class="fl">Tiền sử bệnh (mỗi dòng một bệnh)</label><textarea class="fc" id="ap-hist" rows="3" placeholder="Tăng huyết áp&#10;Đái tháo đường..."></textarea></div>'+
+  '<div class="fg"><label class="fl">Dị ứng thuốc (mỗi dòng một loại)</label><textarea class="fc" id="ap-al" rows="2" placeholder="Penicillin&#10;Aspirin..."></textarea></div>'+
+  '</div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Hủy</button><button class="btn btn-primary" onclick="saveNewP()">Lưu bệnh nhân</button></div>');
+  setTimeout(function(){var e=document.getElementById('ap-n');if(e)e.focus()},100);
+}
+function saveNewP(){
+  var name=gv('ap-n');if(!name){showAlert('Vui lòng nhập họ và tên');return;}
+  var hist=document.getElementById('ap-hist').value.split('\n').map(function(x){return x.trim()}).filter(Boolean);
+  var al=document.getElementById('ap-al').value.split('\n').map(function(x){return x.trim()}).filter(Boolean);
+  var p={id:uid(),name:name,dob:gv('ap-dob'),gender:document.getElementById('ap-g').value,phone:gv('ap-ph'),blood:gv('ap-bl'),job:gv('ap-job'),address:addrObj(gv('ap-street'),gv('ap-province')),history:hist,allergies:al,createdAt:new Date().toISOString().slice(0,10)};
+  closeModal();dbAddP(p,function(){notify('✅ Đã thêm: '+name);setView('patient',p.id);});
+}
+
+function showEditModal(pid){
+  var p=db.patients.find(function(x){return x.id===pid});if(!p)return;
+  openModal('<div class="modal-header"><h3>✏ Chỉnh sửa thông tin</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  '<div class="modal-body"><div class="grid-2">'+
+    '<div class="fg"><label class="fl">Họ và tên</label><input class="fc" id="ep-n" value="'+esc(p.name)+'"></div>'+
+    '<div class="fg"><label class="fl">Ngày sinh</label><input type="date" class="fc" id="ep-dob" value="'+(p.dob||'')+'"></div>'+
+    '<div class="fg"><label class="fl">Giới tính</label><select class="fc" id="ep-g"><option '+(p.gender==='Nam'?'selected':'')+'>Nam</option><option '+(p.gender==='Nữ'?'selected':'')+'>Nữ</option><option '+(p.gender==='Khác'?'selected':'')+'>Khác</option></select></div>'+
+    '<div class="fg"><label class="fl">Điện thoại</label><input class="fc" id="ep-ph" value="'+esc(p.phone||'')+'"></div>'+
+    '<div class="fg"><label class="fl">Nhóm máu</label><select class="fc" id="ep-bl">'+['','A+','A-','B+','B-','AB+','AB-','O+','O-'].map(function(b){return'<option value="'+b+'"'+(p.blood===b?' selected':'')+'>'+( b||'Không rõ')+'</option>'}).join('')+'</select></div>'+
+    '<div class="fg"><label class="fl">Nghề nghiệp</label><input class="fc" id="ep-job" value="'+esc(p.job||'')+'"></div>'+
+  '</div>'+
+  '<div class="fg"><label class="fl">Số nhà, tên đường</label><input class="fc" id="ep-street" value="'+esc(typeof p.address==="object"?p.address.street||"":(p.address||""))+'" placeholder="VD: 123 Nguyễn Trãi, P.3"></div>'+
+  '<div class="fg"><label class="fl">Tỉnh / Thành phố</label><select class="fc" id="ep-province"><option value="">-- Chọn tỉnh/thành --</option>'+provinceOpts(typeof p.address==="object"?p.address.province||"":"")+'</select></div></div>'+
+  '<div class="modal-footer"><button class="btn btn-danger" onclick="confirmDelP(\''+pid+'\')">🗑 Xóa bệnh nhân</button><div style="flex:1"></div><button class="btn btn-secondary" onclick="closeModal()">Hủy</button><button class="btn btn-primary" onclick="updP(\''+pid+'\')">💾 Lưu</button></div>');
+}
+function updP(pid){
+  var p=db.patients.find(function(x){return x.id===pid});if(!p)return;
+  p.name=gv('ep-n');p.dob=gv('ep-dob');p.gender=document.getElementById('ep-g').value;
+  p.phone=gv('ep-ph');p.blood=gv('ep-bl');p.job=gv('ep-job');p.address=addrObj(gv('ep-street'),gv('ep-province'));
+  closeModal();dbUpdP(p,function(){notify('✅ Đã cập nhật');if(!useSupabase)render();});
+}
+
+function showHistModal(pid){
+  var p=db.patients.find(function(x){return x.id===pid});if(!p)return;
+  openModal('<div class="modal-header"><h3>📖 Tiền sử bệnh</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  '<div class="modal-body"><div class="fg"><label class="fl">Mỗi dòng một bệnh/tình trạng</label><textarea class="fc" id="ht" rows="10">'+esc((p.history||[]).join('\n'))+'</textarea></div></div>'+
+  '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Hủy</button><button class="btn btn-primary" onclick="saveHist(\''+pid+'\')">Lưu</button></div>');
+}
+function saveHist(pid){var p=db.patients.find(function(x){return x.id===pid});if(!p)return;p.history=document.getElementById('ht').value.split('\n').map(function(x){return x.trim()}).filter(Boolean);closeModal();dbUpdP(p,function(){notify('✅ Đã cập nhật tiền sử');if(!useSupabase)render();});}
+
+function showAllergyModal(pid){
+  var p=db.patients.find(function(x){return x.id===pid});if(!p)return;
+  openModal('<div class="modal-header"><h3>🚨 Dị ứng thuốc</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  '<div class="modal-body"><div style="background:#fff8f8;border:1px solid #fecaca;border-radius:var(--rs);padding:10px 14px;margin-bottom:14px;font-size:12px;color:#991b1b">⚠ Thông tin rất quan trọng. Kiểm tra kỹ trước khi lưu.</div>'+
+  '<div class="fg"><label class="fl">Mỗi dòng một loại thuốc dị ứng</label><textarea class="fc" id="alt" rows="8">'+esc((p.allergies||[]).join('\n'))+'</textarea></div></div>'+
+  '<div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal()">Hủy</button><button class="btn btn-primary" onclick="saveAllergy(\''+pid+'\')">Lưu</button></div>');
+}
+function saveAllergy(pid){var p=db.patients.find(function(x){return x.id===pid});if(!p)return;p.allergies=document.getElementById('alt').value.split('\n').map(function(x){return x.trim()}).filter(Boolean);closeModal();dbUpdP(p,function(){notify('✅ Đã cập nhật dị ứng');if(!useSupabase)render();});}
+
+function confirmDelV(vid){var v=db.visits.find(function(x){return x.id===vid});if(!v)return;showConfirm('🗑 Xóa lần khám?','Lần khám ngày <strong>'+fd(v.date)+'</strong> sẽ bị xóa vĩnh viễn.',function(){dbDelV(vid,function(){delete expanded[vid];closeModal();notify('🗑 Đã xóa lần khám');if(!useSupabase)render();});});}
+function confirmDelP(pid){var p=db.patients.find(function(x){return x.id===pid});if(!p)return;var vc=db.visits.filter(function(v){return v.patientId===pid}).length;showConfirm('🗑 Xóa bệnh nhân?','Bệnh nhân <strong>'+esc(p.name)+'</strong> và <strong>'+vc+' lần khám</strong> sẽ bị xóa vĩnh viễn.',function(){dbDelP(pid,function(){closeModal();notify('🗑 Đã xóa: '+p.name);setView('patients');});});}
+
+function exportDataNow(){
+  var blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='medclinic_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  localStorage.setItem('mc_last_backup',Date.now().toString());
+  closeModal();
+  notify('✅ Đã xuất backup — dữ liệu an toàn!');
+}
+function exportData(){exportDataNow();}
+function triggerImport(){document.getElementById('import-file').click();}
+function importData(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var imp=JSON.parse(ev.target.result);
+      if(!imp.patients||!imp.visits){showAlert('⚠ File không hợp lệ');return;}
+      showConfirm('📂 Nhập dữ liệu?','File có <strong>'+imp.patients.length+' bệnh nhân</strong> và <strong>'+imp.visits.length+' lần khám</strong>. Dữ liệu hiện tại sẽ bị thay thế.',function(){
+        if(useSupabase){
+          setSyncStatus('saving');
+          // Xóa tất cả dữ liệu cũ rồi nhập mới
+          Promise.all([
+            fetch(sbUrl+'/rest/v1/patients?id=neq.null',{method:'DELETE',headers:Object.assign({'Prefer':'return=minimal'},sbH())}),
+            fetch(sbUrl+'/rest/v1/visits?id=neq.null',{method:'DELETE',headers:Object.assign({'Prefer':'return=minimal'},sbH())})
+          ]).then(function(){
+            var insP=imp.patients.map(function(p){var pl=Object.assign({},p);delete pl.id;return{id:p.id,payload:pl};});
+            var insV=imp.visits.map(function(v){var pl=Object.assign({},v);delete pl.id;return{id:v.id,payload:pl};});
+            return Promise.all([
+              fetch(sbUrl+'/rest/v1/patients',{method:'POST',headers:Object.assign({'Prefer':'return=minimal'},sbH()),body:JSON.stringify(insP)}),
+              fetch(sbUrl+'/rest/v1/visits',{method:'POST',headers:Object.assign({'Prefer':'return=minimal'},sbH()),body:JSON.stringify(insV)})
+            ]);
+          }).then(function(){closeModal();notify('✅ Đã nhập dữ liệu');loadFromSupabase();})
+          .catch(function(err){notify('Lỗi: '+err.message,'error');});
+        } else {db=imp;try{localStorage.setItem(DB_KEY,JSON.stringify(db));}catch(ex){}closeModal();notify('✅ Đã nhập dữ liệu');setView('dashboard');}
+      });
+    }catch(err){showAlert('⚠ Không đọc được file: '+err.message);}
+  };
+  reader.readAsText(file);e.target.value='';
+}
+
+function openModal(html){document.getElementById('modal-root').innerHTML='<div class="modal-overlay" onclick="if(event.target.classList.contains(\'modal-overlay\'))closeModal()"><div class="modal">'+html+'</div></div>';}
+function closeModal(){document.getElementById('modal-root').innerHTML='';}
+function showConfirm(title,msg,onOk){
+  document.getElementById('modal-root').innerHTML='<div class="modal-overlay"><div class="confirm-box"><div style="font-size:36px;margin-bottom:12px">⚠️</div><h4>'+title+'</h4><p>'+msg+'</p><div class="confirm-btns"><button class="btn btn-secondary" onclick="closeModal()">Hủy</button><button class="btn btn-danger" id="ok-btn">Xác nhận xóa</button></div></div></div>';
+  document.getElementById('ok-btn').onclick=onOk;
+}
+function showAlert(msg){document.getElementById('modal-root').innerHTML='<div class="modal-overlay"><div class="confirm-box"><p style="font-size:14px;color:var(--g800);line-height:1.7;margin-bottom:18px">'+msg+'</p><button class="btn btn-primary" onclick="closeModal()">OK</button></div></div>';}
+function rAppointments(){
+  var today=new Date().toISOString().slice(0,10);
+  // Collect all visits that have a followUp date
+  var appts=db.visits.filter(function(v){return v.followUp;}).map(function(v){
+    var p=db.patients.find(function(x){return x.id===v.patientId});
+    return{v:v,p:p};
+  }).filter(function(a){return a.p;})
+    .sort(function(a,b){return a.v.followUp.localeCompare(b.v.followUp)});
+
+  var overdue=appts.filter(function(a){return a.v.followUp<today});
+  var todayList=appts.filter(function(a){return a.v.followUp===today});
+  var upcoming=appts.filter(function(a){return a.v.followUp>today});
+
+  function mkRow(a,cls,label){
+    var diff=Math.round((new Date(a.v.followUp)-new Date(today))/(86400000));
+    var diffStr=diff===0?'Hôm nay':diff>0?'Còn '+diff+' ngày':'Trễ '+(Math.abs(diff))+' ngày';
+    return '<tr onclick="setView(\'patient\',\''+a.p.id+'\')" style="cursor:pointer">'+
+      '<td><div class="flex gap-8"><div class="avatar">'+a.p.name.split(' ').pop()[0]+'</div>'+
+      '<div><div style="font-weight:600">'+esc(a.p.name)+'</div><div style="font-size:11px;color:var(--g400)">'+esc(a.p.phone||'')+'</div></div></div></td>'+
+      '<td style="font-weight:700;color:var(--b900)">'+fd(a.v.followUp)+'</td>'+
+      '<td><span class="badge '+cls+'">'+diffStr+'</span></td>'+
+      '<td style="color:var(--g600);font-size:12px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.v.diagnosis)+'</td>'+
+      '<td onclick="event.stopPropagation()"><button class="btn btn-primary btn-sm" onclick="goNV(\''+a.p.id+'\')">+ Khám mới</button></td>'+
+    '</tr>';
+  }
+
+  var html='<div class="grid-3" style="margin-bottom:20px">'+
+    '<div class="stat-card"><div class="stat-icon" style="background:#fee2e2">⏰</div><div class="stat-label">Trễ lịch</div><div class="stat-value" style="color:#b91c1c">'+overdue.length+'</div><div class="stat-sub">Cần liên hệ</div></div>'+
+    '<div class="stat-card"><div class="stat-icon" style="background:#dcfce7">✅</div><div class="stat-label">Tái khám hôm nay</div><div class="stat-value" style="color:#166534">'+todayList.length+'</div><div class="stat-sub">'+new Date().toLocaleDateString('vi-VN')+'</div></div>'+
+    '<div class="stat-card"><div class="stat-icon" style="background:var(--b50)">📆</div><div class="stat-label">Sắp tới</div><div class="stat-value" style="color:var(--b600)">'+upcoming.length+'</div><div class="stat-sub">Các ngày kế tiếp</div></div>'+
+  '</div>';
+
+  if(overdue.length){
+    html+='<div class="card" style="margin-bottom:16px"><div class="card-header"><h3>⏰ Trễ lịch tái khám <span style="font-weight:400;color:#b91c1c">('+overdue.length+')</span></h3></div>'+
+    '<table class="pt"><thead><tr><th>Bệnh nhân</th><th>Ngày hẹn</th><th>Trạng thái</th><th>Chẩn đoán cũ</th><th></th></tr></thead><tbody>'+
+    overdue.map(function(a){return mkRow(a,'badge appt-overdue','Trễ');}).join('')+
+    '</tbody></table></div>';
+  }
+
+  html+='<div class="card" style="margin-bottom:16px"><div class="card-header"><h3>📅 Tái khám hôm nay <span style="font-weight:400;color:var(--g400)">('+todayList.length+')</span></h3></div>'+
+  '<table class="pt"><thead><tr><th>Bệnh nhân</th><th>Ngày hẹn</th><th>Trạng thái</th><th>Chẩn đoán cũ</th><th></th></tr></thead><tbody>'+
+  (todayList.length?todayList.map(function(a){return mkRow(a,'badge appt-today','Hôm nay');}).join(''):'<tr><td colspan="5"><div class="empty">Không có lịch tái khám hôm nay</div></td></tr>')+
+  '</tbody></table></div>';
+
+  html+='<div class="card"><div class="card-header"><h3>📆 Lịch sắp tới <span style="font-weight:400;color:var(--g400)">('+upcoming.length+')</span></h3></div>'+
+  '<table class="pt"><thead><tr><th>Bệnh nhân</th><th>Ngày hẹn</th><th>Trạng thái</th><th>Chẩn đoán cũ</th><th></th></tr></thead><tbody>'+
+  (upcoming.length?upcoming.map(function(a){return mkRow(a,'badge appt-future','Sắp tới');}).join(''):'<tr><td colspan="5"><div class="empty">Không có lịch hẹn sắp tới</div></td></tr>')+
+  '</tbody></table></div>';
+
+  return html;
+}
+
+function showEditVisitModal(vid){
+  var v=db.visits.find(function(x){return x.id===vid});if(!v)return;
+  var meds=v.medications||[];var tests=v.tests||[];
+  var vitals=v.vitals||{};
+
+  // Build medication rows HTML
+  var medsHtml='';
+  meds.forEach(function(m,i){
+    var id='em'+i;
+    var formOpts=['viên','gói','ống','ml','lần'].map(function(f){
+      return '<option value="'+f+'"'+(m.form===f?' selected':'')+'>'+f+'</option>';
+    }).join('');
+    var timingChecks=[
+      {k:'ts',lbl:'Sáng'},{k:'ttr',lbl:'Trưa'},{k:'tc',lbl:'Chiều'},{k:'tt',lbl:'Tối'}
+    ].map(function(t){
+      var chk=(m.timing&&m.timing.indexOf(t.lbl)>=0)?'checked':'';
+      return '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 9px;background:white;border:1px solid var(--b200);border-radius:20px;color:var(--b800);white-space:nowrap"><input type="checkbox" id="'+id+'_'+t.k+'" value="'+t.lbl+'" '+chk+' style="width:13px;height:13px;accent-color:var(--b600)"> '+t.lbl+'</label>';
+    }).join('');
+    medsHtml+='<div style="background:var(--b50);border:1.5px solid var(--b100);border-radius:var(--rs);padding:12px 14px;margin-bottom:10px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+        '<span style="font-size:12px;font-weight:700;color:var(--b800);text-transform:uppercase">💊 Thuốc '+(i+1)+'</span>'+
+        '<button onclick="this.closest(\'div[id]\').remove()" style="width:24px;height:24px;border:1px solid #fecaca;background:#fee2e2;color:#b91c1c;border-radius:50%;cursor:pointer;font-size:13px">✕</button>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
+        '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Tên thuốc</label><input class="fc" id="'+id+'_n" value="'+esc(m.name||'')+'" style="background:white"></div>'+
+        '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Dạng dùng</label><select class="fc" id="'+id+'_form" style="background:white">'+formOpts+'</select></div>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:100px 100px 1fr 100px;gap:10px;margin-bottom:8px;align-items:end">'+
+        '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Số lượng</label><input class="fc" id="'+id+'_qty" type="number" min="0.5" step="0.5" value="'+(m.qty||1)+'" style="background:white;text-align:center;font-weight:700"></div>'+
+        '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Số lần/ngày</label><input class="fc" id="'+id+'_freq" type="number" min="1" max="6" value="'+(m.freq||2)+'" style="background:white;text-align:center;font-weight:700"></div>'+
+        '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Buổi uống</label><div style="display:flex;gap:5px;flex-wrap:wrap;padding-top:4px">'+timingChecks+'</div></div>'+
+        '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Số ngày</label><input class="fc" id="'+id+'_dur" type="number" min="1" value="'+(m.duration||7)+'" style="background:white;text-align:center;font-weight:700"></div>'+
+      '</div>'+
+      '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Ghi chú</label><input class="fc" id="'+id+'_note" value="'+esc(m.note||'')+'" placeholder="Uống sau ăn..." style="background:white"></div>'+
+    '</div>';
+    // wrap in id-able container
+    medsHtml=medsHtml.replace('<div style="background:var(--b50)','<div id="evm_'+id+'" style="background:var(--b50)');
+  });
+
+  // Build test rows HTML
+  var testsHtml='';
+  tests.forEach(function(t,i){
+    var id='et'+i;
+    testsHtml+='<div id="evt_'+id+'" style="display:grid;grid-template-columns:2fr 2fr 120px 38px;gap:8px;margin-bottom:8px;align-items:center">'+
+      '<input class="fc" id="'+id+'_n" value="'+esc(t.name||'')+'" placeholder="Tên xét nghiệm">'+
+      '<input class="fc" id="'+id+'_r" value="'+esc(t.result||'')+'" placeholder="Kết quả">'+
+      '<select class="fc" id="'+id+'_s"><option value="pending"'+(t.status==='pending'?' selected':'')+'>⏳ Chờ KQ</option><option value="done"'+(t.status==='done'?' selected':'')+'>✓ Có KQ</option></select>'+
+      '<button onclick="document.getElementById(\'evt_'+id+'\').remove()" style="width:38px;height:38px;border:1px solid #fecaca;background:#fee2e2;color:#b91c1c;border-radius:var(--rs);cursor:pointer;font-size:16px">✕</button>'+
+    '</div>';
+  });
+
+  resetAssessState();
+  openModal(
+    '<div class="modal-header"><h3>✏ Sửa phiếu khám</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-body" style="padding:18px">'+
+      '<div class="grid-2" style="margin-bottom:4px">'+
+        '<div class="fg"><label class="fl">Ngày khám *</label><input type="date" class="fc" id="ev-date" value="'+(v.date||'')+'"></div>'+
+        '<div class="fg"><label class="fl">Ngày tái khám</label><input type="date" class="fc" id="ev-fu" value="'+(v.followUp||'')+'"></div>'+
+      '</div>'+
+      '<div class="divider"></div>'+
+      '<div class="sec-title">💓 Sinh hiệu</div>'+
+      '<div class="grid-3" style="margin-bottom:4px">'+
+        '<div class="fg"><label class="fl">Huyết áp (mmHg)</label><input class="fc" id="ev-bp" value="'+esc(vitals.bp||'')+'" placeholder="120/80"></div>'+
+        '<div class="fg"><label class="fl">Nhịp tim (lần/phút)</label><input class="fc" id="ev-hr" type="number" value="'+esc(vitals.hr||'')+'" placeholder="72"></div>'+
+        '<div class="fg"><label class="fl">Nhiệt độ (°C)</label><input class="fc" id="ev-temp" type="number" step="0.1" value="'+esc(vitals.temp||'')+'" placeholder="36.8"></div>'+
+        '<div class="fg"><label class="fl">SpO₂ (%)</label><input class="fc" id="ev-spo2" type="number" value="'+esc(vitals.spo2||'')+'" placeholder="99"></div>'+
+        '<div class="fg"><label class="fl">Cân nặng (kg)</label><input class="fc" id="ev-weight" type="number" step="0.1" value="'+esc(vitals.weight||'')+'" placeholder="60"></div>'+
+        '<div class="fg"><label class="fl">Chiều cao (cm)</label><input class="fc" id="ev-height" type="number" value="'+esc(vitals.height||'')+'" placeholder="165"></div>'+
+      '</div>'+
+      '<div class="divider"></div>'+
+      '<div class="fg"><label class="fl">Lý do khám / Triệu chứng *</label><textarea class="fc" id="ev-cc" rows="2">'+esc(v.chiefComplaint||'')+'</textarea></div>'+
+      rDxContainer('ev-dx-list')+
+      '<div class="fg"><label class="fl">Ghi chú bác sĩ</label><textarea class="fc" id="ev-note" rows="2">'+esc(v.note||'')+'</textarea></div>'+
+      '<div class="divider"></div>'+
+      '<div class="sec-title">💊 Đơn thuốc</div>'+
+      '<div id="ev-med-rows">'+medsHtml+'</div>'+
+      '<button class="btn btn-secondary btn-sm" onclick="evAddMed()" style="margin-bottom:14px">+ Thêm thuốc</button>'+
+      '<div class="divider"></div>'+
+      '<div class="sec-title">🔬 Cận lâm sàng</div>'+
+      '<div id="ev-test-rows">'+testsHtml+'</div>'+
+      '<button class="btn btn-secondary btn-sm" onclick="evAddTest()" style="margin-bottom:4px">+ Thêm xét nghiệm</button>'+
+      rAssessHTML()+
+    '</div>'+
+    '<div class="modal-footer">'+
+      '<button class="btn btn-secondary" onclick="closeModal()">Hủy</button>'+
+      '<button class="btn btn-primary" onclick="saveEditVisit(\''+vid+'\')">💾 Lưu thay đổi</button>'+
+    '</div>'
+  );
+  setTimeout(function(){
+    initAssessUI(v.assessments);
+    resetDxRows();
+    var dxList=v.diagnoses&&v.diagnoses.length?v.diagnoses:(v.diagnosis?[{name:v.diagnosis,code:v.icdCode||''}]:[]);
+    if(!dxList.length)dxList=[{name:'',code:''}];
+    dxList.forEach(function(d){addDxRow('ev-dx-list',d.name,d.code,d.note||'');});
+    // Make existing med rows have move buttons via id
+    document.querySelectorAll('#ev-med-rows > [id^="evm_"]').forEach(function(el){
+      var rowId=el.id.replace('evm_','');
+      var hdr=el.querySelector('div');
+      if(hdr&&!el.querySelector('[title="Lên"]')){
+        var btnWrap=document.createElement('div');
+        btnWrap.style.cssText='display:flex;gap:2px;margin-right:8px';
+        var bu=document.createElement('button');
+        bu.title='Lên';bu.innerHTML='▲';bu.onclick=function(){moveEl(el.id,-1);};
+        bu.style.cssText='width:22px;height:22px;border:1px solid var(--b200);background:white;border-radius:4px;cursor:pointer;font-size:10px;color:var(--b600)';
+        var bd=document.createElement('button');
+        bd.title='Xuống';bd.innerHTML='▼';bd.onclick=function(){moveEl(el.id,1);};
+        bd.style.cssText='width:22px;height:22px;border:1px solid var(--b200);background:white;border-radius:4px;cursor:pointer;font-size:10px;color:var(--b600)';
+        btnWrap.appendChild(bu);btnWrap.appendChild(bd);
+        hdr.insertBefore(btnWrap,hdr.firstChild);
+      }
+    });
+  },80);
+}
+
+function evAddMed(){
+  var id='em_new_'+Date.now();
+  var d=document.createElement('div');
+  d.id='evm_'+id;
+  d.style.cssText='background:var(--b50);border:1.5px solid var(--b100);border-radius:var(--rs);padding:12px 14px;margin-bottom:10px';
+  d.innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+      '<div style="display:flex;align-items:center;gap:8px">'+
+        '<div style="display:flex;gap:2px">'+
+          '<button onclick="moveEl(\''+id+'\',-1)" title="Lên" style="width:22px;height:22px;border:1px solid var(--b200);background:white;border-radius:4px;cursor:pointer;font-size:10px;color:var(--b600);display:flex;align-items:center;justify-content:center">▲</button>'+
+          '<button onclick="moveEl(\''+id+'\',1)" title="Xuống" style="width:22px;height:22px;border:1px solid var(--b200);background:white;border-radius:4px;cursor:pointer;font-size:10px;color:var(--b600);display:flex;align-items:center;justify-content:center">▼</button>'+
+        '</div>'+
+        '<span style="font-size:12px;font-weight:700;color:var(--b800);text-transform:uppercase">💊 Thuốc mới</span>'+
+      '</div>'+
+      '<button onclick="this.closest(\'[id]\').remove()" style="width:24px;height:24px;border:1px solid #fecaca;background:#fee2e2;color:#b91c1c;border-radius:50%;cursor:pointer;font-size:13px">✕</button>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
+      '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Tên thuốc</label><input class="fc" id="'+id+'_n" placeholder="Tên thuốc" style="background:white"></div>'+
+      '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Dạng dùng</label><select class="fc" id="'+id+'_form" style="background:white"><option value="viên">Viên</option><option value="gói">Gói</option><option value="ống">Ống</option><option value="ml">ml</option><option value="lần">Lần</option></select></div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:100px 100px 1fr 100px;gap:10px;margin-bottom:8px;align-items:end">'+
+      '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Số lượng</label><input class="fc" id="'+id+'_qty" type="number" min="0.5" step="0.5" value="1" style="background:white;text-align:center;font-weight:700"></div>'+
+      '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Số lần/ngày</label><input class="fc" id="'+id+'_freq" type="number" min="1" max="6" value="2" style="background:white;text-align:center;font-weight:700"></div>'+
+      '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Buổi uống</label><div style="display:flex;gap:5px;flex-wrap:wrap;padding-top:4px">'+
+        '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 9px;background:white;border:1px solid var(--b200);border-radius:20px;color:var(--b800)"><input type="checkbox" id="'+id+'_ts" value="Sáng" style="width:13px;height:13px;accent-color:var(--b600)"> Sáng</label>'+
+        '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 9px;background:white;border:1px solid var(--b200);border-radius:20px;color:var(--b800)"><input type="checkbox" id="'+id+'_ttr" value="Trưa" style="width:13px;height:13px;accent-color:var(--b600)"> Trưa</label>'+
+        '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 9px;background:white;border:1px solid var(--b200);border-radius:20px;color:var(--b800)"><input type="checkbox" id="'+id+'_tc" value="Chiều" style="width:13px;height:13px;accent-color:var(--b600)"> Chiều</label>'+
+        '<label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:5px 9px;background:white;border:1px solid var(--b200);border-radius:20px;color:var(--b800)"><input type="checkbox" id="'+id+'_tt" value="Tối" style="width:13px;height:13px;accent-color:var(--b600)"> Tối</label>'+
+      '</div></div>'+
+      '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Số ngày</label><input class="fc" id="'+id+'_dur" type="number" min="1" value="7" style="background:white;text-align:center;font-weight:700"></div>'+
+    '</div>'+
+    '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase">Ghi chú</label><input class="fc" id="'+id+'_note" placeholder="Uống sau ăn..." style="background:white"></div>';
+  document.getElementById('ev-med-rows').appendChild(d);
+}
+
+function evAddTest(){
+  var id='et_new_'+Date.now();
+  var d=document.createElement('div');
+  d.id='evt_'+id;
+  d.style.cssText='display:grid;grid-template-columns:2fr 2fr 120px 38px;gap:8px;margin-bottom:8px;align-items:center';
+  d.innerHTML='<input class="fc" id="'+id+'_n" placeholder="Tên xét nghiệm/CĐHA"><input class="fc" id="'+id+'_r" placeholder="Kết quả (nếu có)"><select class="fc" id="'+id+'_s"><option value="pending">⏳ Chờ KQ</option><option value="done">✓ Có KQ</option></select><button onclick="this.closest(\'[id]\').remove()" style="width:38px;height:38px;border:1px solid #fecaca;background:#fee2e2;color:#b91c1c;border-radius:var(--rs);cursor:pointer;font-size:16px">✕</button>';
+  document.getElementById('ev-test-rows').appendChild(d);
+}
+
+function saveEditVisit(vid){
+  var v=db.visits.find(function(x){return x.id===vid});if(!v)return;
+  var date=gv('ev-date'),cc=gv('ev-cc');
+  var diagnoses=readDxRows('ev-dx-list');
+  var dx=diagnoses.map(function(d){return d.name;}).join('; ');
+  var icdCode=diagnoses.map(function(d){return d.code;}).filter(Boolean).join(', ');
+  if(!date||!cc||!diagnoses.length){showAlert('⚠ Vui lòng điền đầy đủ ngày khám, lý do và ít nhất một chẩn đoán');return;}
+  v.date=date;v.chiefComplaint=cc;v.diagnosis=dx;v.icdCode=icdCode;v.diagnoses=diagnoses;v.note=gv('ev-note');v.followUp=gv('ev-fu');
+  v.vitals={bp:gv('ev-bp'),hr:gv('ev-hr'),temp:gv('ev-temp'),spo2:gv('ev-spo2'),weight:gv('ev-weight'),height:gv('ev-height')};
+  // Collect meds
+  var meds=[];
+  document.querySelectorAll('#ev-med-rows > [id^="evm_"]').forEach(function(row){
+    var rid=row.id.replace('evm_','');
+    var nameEl=document.getElementById(rid+'_n');
+    if(!nameEl||!nameEl.value.trim())return;
+    var timing=[];
+    ['ts','ttr','tc','tt'].forEach(function(k){var el=document.getElementById(rid+'_'+k);if(el&&el.checked)timing.push(el.value);});
+    meds.push({name:nameEl.value.trim(),form:document.getElementById(rid+'_form')?document.getElementById(rid+'_form').value:'viên',qty:document.getElementById(rid+'_qty')?document.getElementById(rid+'_qty').value:'1',freq:document.getElementById(rid+'_freq')?document.getElementById(rid+'_freq').value:'2',timing:timing.join(', '),duration:document.getElementById(rid+'_dur')?document.getElementById(rid+'_dur').value:'7',note:document.getElementById(rid+'_note')?document.getElementById(rid+'_note').value.trim():''});
+  });
+  v.medications=meds;
+  // Collect tests
+  var tests=[];
+  document.querySelectorAll('#ev-test-rows > [id^="evt_"]').forEach(function(row){
+    var rid=row.id.replace('evt_','');
+    var nameEl=document.getElementById(rid+'_n');
+    if(!nameEl||!nameEl.value.trim())return;
+    var sel=document.getElementById(rid+'_s');
+    tests.push({name:nameEl.value.trim(),result:document.getElementById(rid+'_r')?document.getElementById(rid+'_r').value.trim():'',status:sel?sel.value:'pending'});
+  });
+  v.tests=tests;
+  v.assessments=readAssessFromForm();
+  // Update in db
+  var idx=db.visits.findIndex(function(x){return x.id===vid});
+  if(idx>=0)db.visits[idx]=v;
+  closeModal();
+  dbUpdV(v,function(){notify('✅ Đã cập nhật phiếu khám');});
+}
+
+function buildPhieu(vid){
+  var v=db.visits.find(function(x){return x.id===vid});if(!v)return null;
+  var p=db.patients.find(function(x){return x.id===v.patientId});if(!p)return null;
+  var age=p.dob?new Date().getFullYear()-parseInt(p.dob.slice(0,4))+'':'—';
+  function row(k,val){return val?'<tr><td style="width:35%;font-weight:600;color:#555;padding:6px 10px;border:1px solid #e5e7eb;background:#f9fafb">'+k+'</td><td style="padding:6px 10px;border:1px solid #e5e7eb">'+val+'</td></tr>':'';}
+  var medsHtml='';
+  if(v.medications&&v.medications.length){
+    medsHtml='<div style="margin-top:20px"><h3 style="font-size:13px;font-weight:700;color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:6px;margin-bottom:10px">💊 ĐƠN THUỐC</h3><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#1e3a5f;color:white"><th style="padding:7px 10px;text-align:left">STT</th><th style="padding:7px 10px;text-align:left">Tên thuốc</th><th style="padding:7px 10px;text-align:left">Liều dùng</th><th style="padding:7px 10px;text-align:left">Buổi</th><th style="padding:7px 10px;text-align:left">Số ngày</th><th style="padding:7px 10px;text-align:left">Ghi chú</th></tr></thead><tbody>';
+    v.medications.forEach(function(m,i){
+      var dose=(m.qty||'?')+' '+(m.form||'viên')+' × '+(m.freq||'?')+' lần/ngày';
+      if(!m.qty&&m.dose)dose=m.dose;
+      medsHtml+='<tr style="background:'+(i%2?'#f9fafb':'white')+'"><td style="padding:6px 10px;border:1px solid #e5e7eb">'+(i+1)+'</td><td style="padding:6px 10px;border:1px solid #e5e7eb;font-weight:600">'+esc(m.name)+'</td><td style="padding:6px 10px;border:1px solid #e5e7eb">'+dose+'</td><td style="padding:6px 10px;border:1px solid #e5e7eb">'+esc(m.timing||'—')+'</td><td style="padding:6px 10px;border:1px solid #e5e7eb">'+esc(m.duration?m.duration+' ngày':'—')+'</td><td style="padding:6px 10px;border:1px solid #e5e7eb;font-style:italic;color:#666">'+esc(m.note||'')+'</td></tr>';
+    });
+    medsHtml+='</tbody></table></div>';
+  }
+  var testsHtml='';
+  if(v.tests&&v.tests.length){
+    testsHtml='<div style="margin-top:16px"><h3 style="font-size:13px;font-weight:700;color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:6px;margin-bottom:10px">🔬 CẬN LÂM SÀNG</h3><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#1e3a5f;color:white"><th style="padding:7px 10px;text-align:left">Tên XN/CĐHA</th><th style="padding:7px 10px;text-align:left">Kết quả</th><th style="padding:7px 10px;text-align:left">Trạng thái</th></tr></thead><tbody>';
+    v.tests.forEach(function(t,i){testsHtml+='<tr style="background:'+(i%2?'#f9fafb':'white')+'"><td style="padding:6px 10px;border:1px solid #e5e7eb;font-weight:600">'+esc(t.name)+'</td><td style="padding:6px 10px;border:1px solid #e5e7eb">'+esc(t.result||'—')+'</td><td style="padding:6px 10px;border:1px solid #e5e7eb">'+(t.status==='done'?'✓ Có kết quả':'⏳ Chờ kết quả')+'</td></tr>';});
+    testsHtml+='</tbody></table></div>';
+  }
+  var allergyWarning='';
+  if(p.allergies&&p.allergies.length){allergyWarning='<div style="background:#fee2e2;border:2px solid #fca5a5;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#991b1b"><strong>⚠ DỊ ỨNG THUỐC:</strong> '+p.allergies.map(function(a){return esc(a)}).join(', ')+'</div>';}
+  var body=
+    allergyWarning+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'+
+    '<div><div style="font-size:18px;font-weight:700;color:#1e3a5f;margin-bottom:2px">PHIẾU KHÁM BỆNH</div><div style="font-size:11px;color:#6b7280">MedClinic — Hệ thống quản lý phòng khám</div></div>'+
+    '<div style="text-align:right;font-size:12px;color:#6b7280"><div>Ngày khám: <strong style="color:#1f2937">'+fd(v.date)+'</strong></div><div>Số phiếu: <strong style="color:#1f2937">#'+v.id.slice(-6).toUpperCase()+'</strong></div></div></div>'+
+    '<hr style="border:none;border-top:2px solid #1e3a5f;margin-bottom:14px">'+
+    '<h3 style="font-size:13px;font-weight:700;color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:6px;margin-bottom:10px">THÔNG TIN BỆNH NHÂN</h3>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px">'+
+    row('Họ và tên',esc(p.name))+row('Năm sinh / Tuổi',(p.dob?p.dob.slice(0,4):'')+' ('+age+' tuổi)')+row('Giới tính',p.gender)+row('Nhóm máu',p.blood||'Không rõ')+row('Điện thoại',esc(p.phone||''))+row('Địa chỉ',esc(addrFull(p.address)))+
+    '</table>'+
+    '<h3 style="font-size:13px;font-weight:700;color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:6px;margin-bottom:10px">SINH HIỆU & LÂM SÀNG</h3>'+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">'+
+    [['Huyết áp',v.vitals.bp,'mmHg'],['Nhịp tim',v.vitals.hr,'lần/phút'],['Nhiệt độ',v.vitals.temp,'°C'],['SpO₂',v.vitals.spo2,'%'],['Cân nặng',v.vitals.weight,'kg'],['Chiều cao',v.vitals.height,'cm']].map(function(x){return'<div style="background:#f0f6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 12px"><div style="font-size:10px;color:#3b82f6;font-weight:700;text-transform:uppercase;margin-bottom:2px">'+x[0]+'</div><div style="font-size:16px;font-weight:700;color:#1e3a5f">'+(x[1]||'—')+(x[1]?'<span style="font-size:10px;font-weight:400;color:#6b7280;margin-left:2px">'+x[2]+'</span>':'')+'</div></div>';}).join('')+
+    '</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px">'+
+    row('Lý do khám',esc(v.chiefComplaint))+(function(){
+      var dxList=v.diagnoses&&v.diagnoses.length?v.diagnoses:(v.diagnosis?[{name:v.diagnosis,code:v.icdCode||'',note:''}]:[]);
+      var dxHtml=dxList.map(function(d,i){
+        return '<div style="margin-bottom:'+(i<dxList.length-1?'6px':'0')+'">'+
+          (dxList.length>1?'<strong>'+(i+1)+'.</strong> ':'')+
+          '<strong style="color:#1e3a5f">'+esc(d.name)+'</strong>'+
+          (d.code?' <span style="background:#e6f1fb;color:#0c447c;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">'+esc(d.code)+'</span>':'')+
+          (d.note?'<br><span style="font-size:12px;color:#6b7280;margin-left:'+(dxList.length>1?'14px':'0')+'">'+esc(d.note)+'</span>':'')+
+        '</div>';
+      }).join('');
+      return row('Chẩn đoán',dxHtml);
+    })()+(v.note?row('Ghi chú bác sĩ',esc(v.note)):'')+
+    '</table>'+
+    medsHtml+testsHtml+
+    (v.followUp?'<div style="margin-top:20px;background:#f0fdf4;border:2px solid #86efac;border-radius:6px;padding:10px 14px;font-size:13px;color:#166534"><strong>📅 Ngày tái khám:</strong> <strong style="font-size:15px">'+fd(v.followUp)+'</strong></div>':'')+
+    '<div style="margin-top:28px;display:flex;justify-content:flex-end"><div style="text-align:center;width:180px"><div style="font-size:12px;color:#6b7280;margin-bottom:60px">Bác sĩ ký tên</div><div style="border-top:1px solid #374151;padding-top:6px;font-size:12px">........................................</div></div></div>';
+  return {body:body, name:esc(p.name), date:fd(v.date)};
+}
+
+function previewVisit(vid){
+  var d=buildPhieu(vid); if(!d)return;
+  document.getElementById('modal-root').innerHTML=
+    '<div class="modal-overlay" onclick="if(event.target.classList.contains(\'modal-overlay\'))closeModal()">'+
+    '<div class="modal" style="max-width:800px;max-height:95vh">'+
+      '<div class="modal-header"><h3>🖨 Xem trước phiếu khám — '+d.name+' ('+d.date+')</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+      '<div class="modal-body" style="background:#f3f4f6;padding:16px">'+
+        '<div id="phieu-preview" style="background:white;padding:24px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);font-family:Arial,sans-serif;font-size:13px;color:#1f2937;max-width:700px;margin:0 auto">'+
+          d.body+
+        '</div>'+
+      '</div>'+
+      '<div class="modal-footer">'+
+        '<button class="btn btn-secondary" onclick="closeModal()">Đóng</button>'+
+        '<button class="btn btn-primary" onclick="printVisit(\''+vid+'\')">📄 In / Xuất PDF</button>'+
+      '</div>'+
+    '</div></div>';
+}
+
+function printVisit(vid){
+  var d=buildPhieu(vid); if(!d)return;
+  var fullHtml='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Phiếu khám — '+d.name+'</title>'+
+    '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1f2937;background:white;padding:16mm 20mm}'+
+    '@media print{@page{size:A4;margin:15mm}body{padding:0}}</style>'+
+    '</head><body>'+d.body+'</body></html>';
+  var frameId='print-frame';
+  var existing=document.getElementById(frameId);if(existing)existing.remove();
+  var iframe=document.createElement('iframe');
+  iframe.id=frameId;
+  iframe.style.cssText='position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none';
+  document.body.appendChild(iframe);
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(fullHtml);
+  iframe.contentDocument.close();
+  setTimeout(function(){
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(function(){iframe.remove();},3000);
+  },400);
+}
+
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
+
+// ══════════════════════════════════════════════════════════════
+// 🔔 HỆ THỐNG THÔNG BÁO — Vitals Inbox
+// ══════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════
+// 🔔 NOTIFICATION SYSTEM v4 — Dùng timestamp, xử lý mọi case
+// ══════════════════════════════════════════════════════════════
+
+var TS_KEY   = 'mc_vlog_ts';    // timestamp lần poll cuối
+var SEEN_KEY = 'mc_vlog_seen';  // badge đã đọc
+
+// lastPollTs: timestamp ISO của lần poll cuối cùng
+// Lần đầu tiên (chưa có gì): đặt = now → không alert log cũ
+// Các lần sau: alert log có submittedAt > lastPollTs
+var lastPollTs = (function(){
+  try{var s=localStorage.getItem(TS_KEY);if(s)return s;}catch(e){}
+  return null;
+})();
+
+var seenIds = (function(){
+  try{var s=localStorage.getItem(SEEN_KEY);if(s)return JSON.parse(s);}catch(e){}
+  return {};
+})();
+
+function saveLastPollTs(ts){try{localStorage.setItem(TS_KEY,ts);}catch(e){}}
+function markSeen(id){seenIds[id]=1;try{localStorage.setItem(SEEN_KEY,JSON.stringify(seenIds));}catch(e){}}
+function isSeen(id){return !!seenIds[id];}
+function getLogId(l){return l.id||(l.patientId+'__'+l.submittedAt);}
+
+function getUnseenLogs(){
+  if(!db.vitals_log)return[];
+  return db.vitals_log.filter(function(l){return !isSeen(getLogId(l));});
+}
+
+function updateInboxBadge(){
+  var badge=document.getElementById('inbox-badge');
+  if(!badge)return;
+  var n=getUnseenLogs().length;
+  if(n>0){badge.textContent=n>9?'9+':String(n);badge.style.display='inline-block';}
+  else{badge.style.display='none';}
+}
+
+function clearInboxBadge(){
+  if(db.vitals_log){db.vitals_log.forEach(function(l){markSeen(getLogId(l));});}
+  updateInboxBadge();
+}
+
+// ── Âm thanh (Web Audio API) — unlock sớm khi user click ────
+var _audioCtx = null;
+function getAudioCtx(){
+  if(!_audioCtx){try{_audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  if(_audioCtx&&_audioCtx.state==='suspended'){_audioCtx.resume().catch(function(){});}
+  return _audioCtx;
+}
+document.addEventListener('click',function _unlock(){getAudioCtx();},{once:true});
+
+function playNotifSound(){
+  var ctx=getAudioCtx();if(!ctx)return;
+  try{
+    var now=ctx.currentTime;
+    [[0,880,0.15],[0.18,1047,0.12],[0.33,1319,0.22]].forEach(function(n){
+      var osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='sine';osc.frequency.value=n[1];
+      gain.gain.setValueAtTime(0,now+n[0]);
+      gain.gain.linearRampToValueAtTime(0.4,now+n[0]+0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001,now+n[0]+n[2]);
+      osc.start(now+n[0]);osc.stop(now+n[0]+n[2]+0.05);
+    });
+  }catch(e){}
+}
+
+// ── Override loadFromSupabase ────────────────────────────────
+var _origLoadSupabase = loadFromSupabase;
+loadFromSupabase = function(){
+  if(!useSupabase)return;
+  Promise.all([
+    fetch(sbUrl+'/rest/v1/patients?select=*',{headers:sbH()}).then(function(r){return r.json();}),
+    fetch(sbUrl+'/rest/v1/visits?select=*',{headers:sbH()}).then(function(r){return r.json();})
+  ]).then(function(res){
+    if(res[0].message||res[1].message)throw new Error(res[0].message||res[1].message);
+    db.patients=res[0].map(function(r){return Object.assign({id:r.id},r.payload||{});});
+    db.visits=res[1].map(function(r){return Object.assign({id:r.id},r.payload||{});});
+    setSyncStatus('online');
+    if(currentView!=='newvisit')render();
+    // Load vitals_log
+    fetch(sbUrl+'/rest/v1/vitals_log?select=*&order=id.desc',{headers:sbH()})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        if(!Array.isArray(data))return;
+        db.vitals_log=data.map(function(r){return Object.assign({id:r.id},r.payload||{});});
+
+        var nowTs=new Date().toISOString();
+
+        if(!lastPollTs){
+          // Lần đầu tiên cài app: ghi nhớ thời điểm hiện tại, không alert
+          lastPollTs=nowTs;
+          saveLastPollTs(nowTs);
+        } else {
+          // Tìm log có submittedAt SAU lastPollTs
+          var brandNewLogs=db.vitals_log.filter(function(l){
+            var ts=l.submittedAt||l.date||'';
+            return ts>lastPollTs;
+          });
+
+          // Cập nhật timestamp
+          lastPollTs=nowTs;
+          saveLastPollTs(nowTs);
+
+          // Alert nếu có log mới và không đang ở inbox
+          if(brandNewLogs.length>0 && currentView!=='vitalsinbox'){
+            triggerPushNotification(brandNewLogs);
+          }
+        }
+
+        updateInboxBadge();
+        if(currentView==='patient'||currentView==='vitalsinbox')render();
+      })
+      .catch(function(){});
+  }).catch(function(e){setSyncStatus('error');notify('Lỗi tải dữ liệu: '+e.message,'error');});
+};
+
+// ── Browser Notification ────────────────────────────────────
+function requestNotifPermission(cb){
+  if(!('Notification' in window)){if(cb)cb(false);return;}
+  if(Notification.permission==='granted'){if(cb)cb(true);return;}
+  if(Notification.permission==='denied'){if(cb)cb(false);return;}
+  Notification.requestPermission().then(function(p){if(cb)cb(p==='granted');});
+}
+
+function triggerPushNotification(newLogs){
+  if(!newLogs||!newLogs.length)return;
+
+  // Phát âm thanh
+  playNotifSound();
+
+  // Browser notification
+  if('Notification' in window && Notification.permission==='granted'){
+    var n=newLogs.length;
+    var title,body;
+    if(n===1){
+      var log=newLogs[0];
+      var p=db.patients.find(function(x){return x.id===log.patientId;});
+      var pname=p?p.name:'Bệnh nhân';
+      var vitals=log.vitals||{};
+      var parts=[];
+      if(vitals.bp)parts.push('HA: '+vitals.bp+' mmHg');
+      if(vitals.hr)parts.push('Tim: '+vitals.hr+' l/p');
+      if(vitals.temp)parts.push('Nhiệt: '+vitals.temp+'°C');
+      if(vitals.spo2)parts.push('SpO₂: '+vitals.spo2+'%');
+      title='📲 '+pname+' vừa gửi chỉ số';
+      body=parts.length?parts.join(' · '):(log.note?log.note.slice(0,100):'Đã gửi kết quả đo');
+    } else {
+      title='📲 '+n+' bệnh nhân vừa gửi kết quả mới';
+      body='Bấm để xem trong mục Theo dõi tại nhà';
+    }
+    try{
+      var notif=new Notification(title,{
+        body:body,
+        icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%23185FA5"/><text y="46" x="8" font-size="42">🏥</text></svg>',
+        tag:'vitals-'+Date.now(),
+        requireInteraction:false,
+        silent:true
+      });
+      notif.onclick=function(){window.focus();setView('vitalsinbox');notif.close();};
+    }catch(e){}
+  }
+
+  // Toast trong app
+  var n2=newLogs.length;
+  var toastMsg=n2===1
+    ?(function(){var p=db.patients.find(function(x){return x.id===newLogs[0].patientId;});return'📲 '+(p?p.name:'Bệnh nhân')+' vừa gửi chỉ số mới';})()
+    :'📲 '+n2+' bệnh nhân vừa gửi kết quả mới';
+  notify(toastMsg);
+}
+
+// ── Render Vitals Inbox ─────────────────────────────────────
+function rVitalsInbox(){
+  if(!useSupabase){
+    return '<div class="card" style="padding:32px;text-align:center">'+
+      '<div style="font-size:48px;margin-bottom:12px">☁️</div>'+
+      '<h3 style="color:var(--b900);margin-bottom:8px">Cần kết nối Supabase</h3>'+
+      '<p style="color:var(--g600);font-size:13px">Tính năng này yêu cầu đồng bộ Supabase để nhận kết quả từ bệnh nhân.</p>'+
+    '</div>';
+  }
+  var logs=(db.vitals_log||[]).slice().sort(function(a,b){
+    return (b.submittedAt||'').localeCompare(a.submittedAt||'');
+  });
+
+  // Nút bật thông báo
+  var notifBtnHtml='';
+  if('Notification' in window){
+    if(Notification.permission==='default'){
+      notifBtnHtml='<button class="btn btn-primary" onclick="requestNotifPermission(function(ok){if(ok)notify(\'✅ Đã bật thông báo!\');else notify(\'⚠ Không thể bật thông báo\',\'warn\');render();})">🔔 Bật thông báo trình duyệt</button>';
+    } else if(Notification.permission==='granted'){
+      notifBtnHtml='<span style="display:inline-flex;align-items:center;gap:6px;background:#dcfce7;color:#166534;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600">🔔 Thông báo đã bật</span>';
+    } else {
+      notifBtnHtml='<span style="display:inline-flex;align-items:center;gap:6px;background:#fee2e2;color:#991b1b;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600">🔕 Thông báo bị chặn — Vào Settings trình duyệt để bật lại</span>';
+    }
+  }
+
+  if(!logs.length){
+    return '<div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:gap">'+
+      '<p style="color:var(--g600);font-size:13px">Kết quả từ bệnh nhân gửi qua link theo dõi sẽ hiện ở đây.</p>'+
+      notifBtnHtml+
+    '</div>'+
+    '<div class="card" style="padding:40px;text-align:center">'+
+      '<div style="font-size:52px;margin-bottom:12px">📭</div>'+
+      '<h3 style="color:var(--g600);font-weight:500">Chưa có kết quả nào</h3>'+
+      '<p style="color:var(--g400);font-size:13px;margin-top:6px">Gửi link theo dõi cho bệnh nhân qua nút "📲 Link theo dõi" trong hồ sơ bệnh nhân</p>'+
+    '</div>';
+  }
+
+  // Group by date
+  var byDate={};
+  logs.forEach(function(l){
+    var day=(l.submittedAt||l.date||'').slice(0,10);
+    if(!byDate[day])byDate[day]=[];
+    byDate[day].push(l);
+  });
+  var dates=Object.keys(byDate).sort(function(a,b){return b.localeCompare(a);});
+
+  var html='<div style="margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'+
+    '<p style="color:var(--g600);font-size:13px">Tổng cộng <strong>'+logs.length+'</strong> lần gửi từ bệnh nhân</p>'+
+    '<div style="display:flex;gap:8px;align-items:center">'+notifBtnHtml+
+    '<button class="btn btn-secondary btn-sm" onclick="loadFromSupabase();notify(\'🔄 Đang làm mới...\')">🔄 Làm mới</button></div>'+
+  '</div>';
+
+  dates.forEach(function(day){
+    var dayLogs=byDate[day];
+    var dayLabel=fd(day);
+    var today=new Date().toISOString().slice(0,10);
+    var yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
+    if(day===today)dayLabel='Hôm nay — '+fd(day);
+    else if(day===yesterday)dayLabel='Hôm qua — '+fd(day);
+
+    html+='<div style="margin-bottom:6px;font-size:11px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:0.5px;padding:0 2px">'+dayLabel+'</div>';
+
+    dayLogs.forEach(function(l){
+      var logId=l.id||l.patientId+'_'+l.submittedAt;
+      var isNew=!isSeen(logId);
+      var p=db.patients.find(function(x){return x.id===l.patientId;});
+      var pname=p?p.name:'Bệnh nhân không xác định';
+      var initial=pname.split(' ').pop()[0]||'?';
+      var vitals=l.vitals||{};
+      var timeStr='';
+      if(l.submittedAt){try{timeStr=new Date(l.submittedAt).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});}catch(e){}}
+
+      var vitalsHtml='';
+      var vitalsData=[
+        {label:'Huyết áp',val:vitals.bp,unit:'mmHg',flag:vitals.bp&&(function(){var parts=(vitals.bp||'').split('/');return parts.length===2&&(parseInt(parts[0])>=140||parseInt(parts[1])>=90)})()},
+        {label:'Nhịp tim',val:vitals.hr,unit:'l/p',flag:vitals.hr&&(parseInt(vitals.hr)<50||parseInt(vitals.hr)>100)},
+        {label:'Nhiệt độ',val:vitals.temp,unit:'°C',flag:vitals.temp&&(parseFloat(vitals.temp)>=37.5||parseFloat(vitals.temp)<36)},
+        {label:'SpO₂',val:vitals.spo2,unit:'%',flag:vitals.spo2&&parseInt(vitals.spo2)<95},
+        {label:'Cân nặng',val:vitals.weight,unit:'kg',flag:false},
+        {label:'Glucose',val:vitals.glucose,unit:'mmol/L',flag:vitals.glucose&&(parseFloat(vitals.glucose)>=10||parseFloat(vitals.glucose)<3.9)}
+      ].filter(function(x){return x.val;});
+
+      if(vitalsData.length){
+        vitalsHtml='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:'+(l.note?'10px':'0')+'">'+
+          vitalsData.map(function(v){
+            var flagStyle=v.flag?'background:#fee2e2;border-color:#fecaca;color:#991b1b':'background:var(--b50);border-color:var(--b100);color:var(--b800)';
+            return '<div style="'+flagStyle+';border:1px solid;border-radius:var(--rs);padding:6px 10px;font-size:12px">'+
+              '<div style="font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:2px;opacity:0.7">'+v.label+(v.flag?' ⚠':'')+'</div>'+
+              '<div style="font-weight:700;font-size:14px">'+v.val+'<span style="font-size:10px;font-weight:400;margin-left:2px;opacity:0.7">'+v.unit+'</span></div>'+
+            '</div>';
+          }).join('')+
+        '</div>';
+      }
+
+      html+='<div style="background:white;border:1px solid '+(isNew?'var(--b200)':'var(--g100)')+';border-left:4px solid '+(isNew?'var(--b600)':'var(--g200)')+';border-radius:var(--r);margin-bottom:10px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,0.04)">'+
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+
+          '<div class="avatar" style="'+(p?'':'background:#fee2e2;color:#991b1b')+'">'+initial+'</div>'+
+          '<div style="flex:1">'+
+            '<div style="font-weight:700;font-size:14px;color:var(--b900);display:flex;align-items:center;gap:8px">'+
+              esc(pname)+
+              (isNew?'<span style="background:var(--b600);color:white;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600">MỚI</span>':'')+
+            '</div>'+
+            '<div style="font-size:12px;color:var(--g400);margin-top:1px">'+timeStr+(l.date?' — '+fd(l.date):'')+'</div>'+
+          '</div>'+
+          '<div style="display:flex;gap:6px">'+
+            (p?'<button class="btn btn-secondary btn-sm" onclick="setView(\'patient\',\''+l.patientId+'\')">Hồ sơ</button>':'')+
+            (p?'<button class="btn btn-primary btn-sm" onclick="goNV(\''+l.patientId+'\')">+ Khám</button>':'')+
+          '</div>'+
+        '</div>'+
+        vitalsHtml+
+        (l.note?'<div style="background:var(--g50);border:1px solid var(--g100);border-radius:var(--rs);padding:8px 12px;font-size:13px;color:var(--g600);font-style:italic">📝 '+esc(l.note)+'</div>':'')+
+      '</div>';
+    });
+  });
+
+  return html;
+}
+
+// Khởi tạo notification permission khi app start (không tự hỏi ngay, chờ user vào inbox)
+function initNotifications(){
+  // Chỉ cập nhật badge, không xin quyền ngay
+  updateInboxBadge();
+}
+
+// Gọi initNotifications sau khi startApp
+var _origStartApp = startApp;
+startApp = function(){
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  render();
+  checkBackupReminder();
+  setTimeout(initNotifications, 500);
+};
+</script>
+</body>
+</html>

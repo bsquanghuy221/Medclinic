@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Theo dõi sức khỏe tại nhà</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--b:#185FA5;--b2:#E6F1FB;--g:#f8f9fb;--r:10px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g);color:#2c3040;font-size:15px;min-height:100vh}
+.wrap{max-width:480px;margin:0 auto;padding:16px}
+.hero{background:linear-gradient(135deg,#042C53,#185FA5);border-radius:var(--r);padding:20px;color:white;margin-bottom:20px;text-align:center}
+.hero h1{font-size:18px;font-weight:700;margin-bottom:4px}
+.hero p{font-size:13px;opacity:0.85}
+.patient-name{font-size:20px;font-weight:700;margin-top:8px}
+.card{background:white;border-radius:var(--r);border:1px solid #eef0f4;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.card h3{font-size:13px;font-weight:700;color:#185FA5;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:600;color:#5a6070;margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;padding:12px 14px;border:1.5px solid #d1d5de;border-radius:8px;font-size:16px;outline:none;color:#2c3040;background:white;transition:border-color 0.15s;-webkit-appearance:none}
+.field input:focus,.field textarea:focus{border-color:var(--b);box-shadow:0 0 0 3px var(--b2)}
+.field textarea{resize:none;line-height:1.5}
+.unit{position:relative}
+.unit input{padding-right:52px}
+.unit span{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;color:#8a90a0;font-weight:500}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-submit{width:100%;padding:16px;background:var(--b);color:white;border:none;border-radius:var(--r);font-size:16px;font-weight:700;cursor:pointer;letter-spacing:0.3px;transition:background 0.15s;margin-top:4px}
+.btn-submit:active{background:#0C447C}
+.btn-submit:disabled{background:#8a90a0;cursor:not-allowed}
+.success{text-align:center;padding:40px 20px}
+.success .icon{font-size:64px;margin-bottom:16px}
+.success h2{font-size:20px;font-weight:700;color:#166534;margin-bottom:8px}
+.success p{color:#5a6070;font-size:14px;line-height:1.6}
+.error-box{background:#fee2e2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;color:#991b1b;font-size:13px;margin-bottom:16px;display:none}
+.loading{text-align:center;padding:60px 20px;color:#5a6070}
+.loading .spin{font-size:36px;animation:spin 1s linear infinite;display:inline-block;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.time-badge{display:inline-flex;align-items:center;gap:6px;background:var(--b2);color:var(--b);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;margin-top:6px}
+.info-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eef0f4;font-size:14px}
+.info-row:last-child{border-bottom:none}
+.info-label{color:#8a90a0;width:110px;flex-shrink:0;font-size:13px}
+.info-val{font-weight:600;color:#2c3040}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loading" class="loading">
+    <div class="spin">⏳</div>
+    <div>Đang tải thông tin...</div>
+  </div>
+  <div id="error-screen" style="display:none;padding:40px 20px;text-align:center">
+    <div style="font-size:48px;margin-bottom:12px">❌</div>
+    <h2 style="color:#991b1b;margin-bottom:8px">Link không hợp lệ</h2>
+    <p style="color:#5a6070;font-size:14px">Vui lòng liên hệ phòng khám để lấy link mới.</p>
+  </div>
+  <div id="form-screen" style="display:none">
+    <div class="hero">
+      <div style="font-size:32px;margin-bottom:6px">🏥</div>
+      <h1>Theo dõi sức khỏe tại nhà</h1>
+      <div class="patient-name" id="patient-name">...</div>
+      <div class="time-badge">📅 <span id="today-date"></span></div>
+    </div>
+    <div id="err-box" class="error-box"></div>
+    <!-- Sinh hiệu -->
+    <div class="card">
+      <h3>💓 Sinh hiệu</h3>
+      <div class="grid2">
+      <div class="field">
+          <label>Huyết áp</label>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="position:relative">
+              <input type="number" id="f-bp-sys" placeholder="120" inputmode="numeric" style="width:100%;padding:12px 70px 12px 14px;border:1.5px solid #d1d5de;border-radius:8px;font-size:16px;color:#2c3040;background:white;outline:none;-webkit-appearance:none">
+              <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#8a90a0;font-weight:500;pointer-events:none">Tâm thu</span>
+            </div>
+            <div style="position:relative">
+              <input type="number" id="f-bp-dia" placeholder="80" inputmode="numeric" style="width:100%;padding:12px 80px 12px 14px;border:1.5px solid #d1d5de;border-radius:8px;font-size:16px;color:#2c3040;background:white;outline:none;-webkit-appearance:none">
+              <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#8a90a0;font-weight:500;pointer-events:none">Tâm trương</span>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#8a90a0;margin-top:4px">Đơn vị: mmHg</div>
+        </div>
+        <div class="field">
+          <label>Nhịp tim</label>
+          <div class="unit"><input type="number" id="f-hr" placeholder="72" inputmode="numeric"><span>l/p</span></div>
+        </div>
+        <div class="field">
+          <label>Nhiệt độ</label>
+          <div class="unit"><input type="number" id="f-temp" placeholder="36.8" step="0.1" inputmode="decimal"><span>°C</span></div>
+        </div>
+        <div class="field">
+          <label>SpO₂</label>
+          <div class="unit"><input type="number" id="f-spo2" placeholder="99" inputmode="numeric"><span>%</span></div>
+        </div>
+        <div class="field">
+          <label>Cân nặng</label>
+          <div class="unit"><input type="number" id="f-weight" placeholder="60" step="0.1" inputmode="decimal"><span>kg</span></div>
+        </div>
+        <div class="field">
+          <label>Glucose máu</label>
+          <div class="unit"><input type="number" id="f-glucose" placeholder="5.5" step="0.1" inputmode="decimal"><span>mmol/L</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- Triệu chứng -->
+    <div class="card">
+      <h3>📝 Triệu chứng & Ghi chú</h3>
+      <div class="field">
+        <label>Bạn đang cảm thấy thế nào hôm nay?</label>
+        <textarea id="f-note" rows="4" placeholder="Ví dụ: Đau đầu nhẹ, mệt mỏi, khó ngủ, ăn kém..."></textarea>
+      </div>
+    </div>
+    <button class="btn-submit" id="btn-submit" onclick="submitForm()">✅ Gửi kết quả cho bác sĩ</button>
+    <p style="text-align:center;font-size:12px;color:#8a90a0;margin-top:12px;padding-bottom:20px">Dữ liệu được mã hoá và chỉ bác sĩ của bạn mới xem được</p>
+  </div>
+  <div id="success-screen" class="success" style="display:none">
+    <div class="icon">✅</div>
+    <h2>Đã gửi thành công!</h2>
+    <p>Kết quả đo của bạn đã được gửi đến bác sĩ.<br>Cảm ơn bạn đã theo dõi sức khỏe thường xuyên!</p>
+    <div style="margin-top:20px;background:#f0fdf4;border:1px solid #86efac;border-radius:var(--r);padding:16px;text-align:left" id="summary"></div>
+    <button onclick="resetForm()" style="margin-top:16px;padding:12px 24px;background:var(--b);color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer">📋 Gửi thêm lần nữa</button>
+  </div>
+</div>
+<script>
+var sbUrl='', sbKey='', patientId='', patientName='';
+
+function getParam(name){
+  var u=new URLSearchParams(window.location.search);
+  return u.get(name)||'';
+}
+
+function init(){
+  sbUrl=decodeURIComponent(getParam('sb'));
+  sbKey=decodeURIComponent(getParam('key'));
+  patientId=getParam('pid');
+  if(!sbUrl||!sbKey||!patientId){showError();return;}
+  document.getElementById('today-date').textContent=new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'numeric',year:'numeric'});
+  // Lấy tên bệnh nhân
+  fetch(sbUrl+'/rest/v1/patients?id=eq.'+encodeURIComponent(patientId)+'&select=payload',{
+    headers:{'apikey':sbKey,'Authorization':'Bearer '+sbKey}
+  }).then(function(r){return r.json();})
+  .then(function(data){
+    if(!data||!data.length){showError();return;}
+    var pl=data[0].payload||{};
+    patientName=pl.name||'Bệnh nhân';
+    document.getElementById('patient-name').textContent=patientName;
+    document.getElementById('loading').style.display='none';
+    document.getElementById('form-screen').style.display='block';
+  }).catch(function(){showError();});
+}
+
+function showError(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('error-screen').style.display='block';
+}
+
+function gv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+
+function submitForm(){
+  var btn=document.getElementById('btn-submit');
+  var err=document.getElementById('err-box');
+  err.style.display='none';
+  var bpSys=gv('f-bp-sys'),bpDia=gv('f-bp-dia');
+  var bp=bpSys&&bpDia?bpSys+'/'+bpDia:(bpSys||bpDia||'');
+  var hr=gv('f-hr'),temp=gv('f-temp'),spo2=gv('f-spo2'),weight=gv('f-weight'),glucose=gv('f-glucose'),note=gv('f-note');
+  if(!bp&&!hr&&!temp&&!spo2&&!weight&&!glucose&&!note){
+    err.textContent='⚠ Vui lòng điền ít nhất một chỉ số hoặc ghi chú.';err.style.display='block';return;
+  }
+  btn.disabled=true;btn.textContent='⏳ Đang gửi...';
+  var now=new Date();
+  var entry={
+    id:'vlog_'+now.getTime(),
+    patientId:patientId,
+    submittedAt:now.toISOString(),
+    date:now.toISOString().slice(0,10),
+    vitals:{bp:bp,hr:hr,temp:temp,spo2:spo2,weight:weight,glucose:glucose},
+    note:note,
+    source:'patient'
+  };
+  var payload={id:entry.id,payload:entry};
+  fetch(sbUrl+'/rest/v1/vitals_log',{
+    method:'POST',
+    headers:{'apikey':sbKey,'Authorization':'Bearer '+sbKey,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify(payload)
+  }).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error(t);});
+    btn.disabled=false;btn.textContent='✅ Gửi kết quả cho bác sĩ';
+    // Show summary
+    var lines=[];
+    if(bp)lines.push('Huyết áp: <strong>'+bp+' mmHg</strong>');
+    if(hr)lines.push('Nhịp tim: <strong>'+hr+' lần/phút</strong>');
+    if(temp)lines.push('Nhiệt độ: <strong>'+temp+' °C</strong>');
+    if(spo2)lines.push('SpO₂: <strong>'+spo2+' %</strong>');
+    if(weight)lines.push('Cân nặng: <strong>'+weight+' kg</strong>');
+    if(glucose)lines.push('Glucose: <strong>'+glucose+' mmol/L</strong>');
+    if(note)lines.push('Ghi chú: <em>'+note+'</em>');
+    document.getElementById('summary').innerHTML='<div style="font-size:13px;color:#2c3040;line-height:2">'+lines.join('<br>')+'</div>';
+    document.getElementById('form-screen').style.display='none';
+    document.getElementById('success-screen').style.display='block';
+  }).catch(function(e){
+    btn.disabled=false;btn.textContent='✅ Gửi kết quả cho bác sĩ';
+    err.textContent='⚠ Gửi thất bại: '+e.message+'. Vui lòng thử lại.';err.style.display='block';
+  });
+}
+
+function resetForm(){
+  ['f-bp-sys','f-bp-dia','f-hr','f-temp','f-spo2','f-weight','f-glucose','f-note'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('success-screen').style.display='none';
+  document.getElementById('form-screen').style.display='block';
+}
+
+init();
+</script>
+</body>
+</html>
