@@ -488,9 +488,18 @@ function rDash(){
 }
 
 function rPatients(){
-  return '<div class="search-bar"><div class="search-wrap"><svg class="search-icon" width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>'+
-  '<input class="search-input" placeholder="Tìm tên, số điện thoại..." oninput="filterP(this.value)"></div>'+
-  '<button class="btn btn-primary" onclick="showAddModal()">+ Thêm bệnh nhân</button></div>'+
+  return '<div class="search-bar">'+
+    '<div class="search-wrap"><svg class="search-icon" width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>'+
+    '<input class="search-input" id="pt-search" placeholder="Tìm tên, biệt danh, số điện thoại..." oninput="filterP(this.value)"></div>'+
+    '<select class="fc" id="pt-sort" onchange="filterP(document.getElementById(\'pt-search\').value)" style="width:auto;font-size:13px;padding:6px 10px">'+
+      '<option value="default">Mặc định</option>'+
+      '<option value="name-az">Tên A → Z</option>'+
+      '<option value="name-za">Tên Z → A</option>'+
+      '<option value="dob-old">Tuổi lớn → nhỏ</option>'+
+      '<option value="dob-young">Tuổi nhỏ → lớn</option>'+
+    '</select>'+
+    '<button class="btn btn-primary" onclick="showAddModal()">+ Thêm bệnh nhân</button>'+
+  '</div>'+
   '<div class="card"><table class="pt"><thead><tr><th>Bệnh nhân</th><th>Năm sinh</th><th>Giới tính</th><th>Điện thoại</th><th>Nhóm máu</th><th>Dị ứng</th><th>Lần khám</th><th></th></tr></thead>'+
   '<tbody id="ptbody">'+rPRows(db.patients)+'</tbody></table>'+(db.patients.length===0?'<div class="empty">Chưa có bệnh nhân nào.</div>':'')+'</div>';
 }
@@ -500,7 +509,10 @@ function rPRows(list){
     var vc=db.visits.filter(function(v){return v.patientId===p.id}).length;
     var yr=p.dob?p.dob.slice(0,4):'—';
     return '<tr onclick="setView(\'patient\',\''+p.id+'\')" style="cursor:pointer">'+
-      '<td><div class="flex gap-8"><div class="avatar">'+p.name.split(' ').pop()[0]+'</div><div><div style="font-weight:600">'+esc(p.name)+'</div><div style="font-size:11px;color:var(--g400)">'+esc(p.address||'')+'</div></div></div></td>'+
+      '<td><div class="flex gap-8"><div class="avatar">'+p.name.split(' ').pop()[0]+'</div><div>'+
+        '<div style="font-weight:600">'+esc(p.name)+'</div>'+
+        (p.nickname?'<div style="font-size:11px;color:var(--b600);font-style:italic">'+esc(p.nickname)+'</div>':'<div style="font-size:11px;color:var(--g400)">'+esc(addrFull(p.address)||'')+'</div>')+
+      '</div></div></td>'+
       '<td>'+yr+'</td><td><span class="badge '+(p.gender==='Nam'?'bb':'ba')+'">'+p.gender+'</span></td><td>'+esc(p.phone||'')+'</td>'+
       '<td><span class="badge bgr">'+(p.blood||'?')+'</span></td>'+
       '<td>'+(p.allergies&&p.allergies.length?'<span class="badge br">⚠ '+p.allergies.length+' loại</span>':'<span class="badge bg">✓ Không có</span>')+'</td>'+
@@ -509,7 +521,20 @@ function rPRows(list){
     '</tr>';
   }).join('');
 }
-function filterP(q){var f=q?db.patients.filter(function(p){return p.name.toLowerCase().indexOf(q.toLowerCase())>=0||(p.phone&&p.phone.indexOf(q)>=0)}):db.patients;var tb=document.getElementById('ptbody');if(tb)tb.innerHTML=rPRows(f);}
+function filterP(q){
+  var sort=document.getElementById('pt-sort')?document.getElementById('pt-sort').value:'default';
+  var f=q?db.patients.filter(function(p){
+    var lq=q.toLowerCase();
+    return p.name.toLowerCase().indexOf(lq)>=0||
+      (p.phone&&p.phone.indexOf(q)>=0)||
+      (p.nickname&&p.nickname.toLowerCase().indexOf(lq)>=0);
+  }):db.patients.slice();
+  if(sort==='name-az')f.sort(function(a,b){return a.name.localeCompare(b.name,'vi');});
+  else if(sort==='name-za')f.sort(function(a,b){return b.name.localeCompare(a.name,'vi');});
+  else if(sort==='dob-old')f.sort(function(a,b){return (a.dob||'9999').localeCompare(b.dob||'9999');});
+  else if(sort==='dob-young')f.sort(function(a,b){return (b.dob||'0000').localeCompare(a.dob||'0000');});
+  var tb=document.getElementById('ptbody');if(tb)tb.innerHTML=rPRows(f);
+}
 
 function rPatient(pid){
   var p=db.patients.find(function(x){return x.id===pid});
@@ -1565,6 +1590,7 @@ function showAddModal(){
   openModal('<div class="modal-header"><h3>➕ Thêm bệnh nhân mới</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
   '<div class="modal-body"><div class="grid-2">'+
     '<div class="fg"><label class="fl">Họ và tên *</label><input class="fc" id="ap-n" placeholder="Nguyễn Văn A"></div>'+
+    '<div class="fg"><label class="fl">Biệt danh <span style="font-weight:400;color:var(--g400)">(để nhận ra nhanh)</span></label><input class="fc" id="ap-nick" placeholder="VD: Ông An béo, Ba Bình..."></div>'+
     '<div class="fg"><label class="fl">Ngày sinh</label><input type="date" class="fc" id="ap-dob"></div>'+
     '<div class="fg"><label class="fl">Giới tính</label><select class="fc" id="ap-g"><option>Nam</option><option>Nữ</option><option>Khác</option></select></div>'+
     '<div class="fg"><label class="fl">Số điện thoại</label><input class="fc" id="ap-ph" type="tel" placeholder="09xxxxxxxx"></div>'+
@@ -1582,7 +1608,7 @@ function saveNewP(){
   var name=gv('ap-n');if(!name){showAlert('Vui lòng nhập họ và tên');return;}
   var hist=document.getElementById('ap-hist').value.split('\n').map(function(x){return x.trim()}).filter(Boolean);
   var al=document.getElementById('ap-al').value.split('\n').map(function(x){return x.trim()}).filter(Boolean);
-  var p={id:uid(),name:name,dob:gv('ap-dob'),gender:document.getElementById('ap-g').value,phone:gv('ap-ph'),blood:gv('ap-bl'),job:gv('ap-job'),address:addrObj(gv('ap-street'),gv('ap-province')),history:hist,allergies:al,createdAt:new Date().toISOString().slice(0,10)};
+  var p={id:uid(),name:name,nickname:gv('ap-nick'),dob:gv('ap-dob'),gender:document.getElementById('ap-g').value,phone:gv('ap-ph'),blood:gv('ap-bl'),job:gv('ap-job'),address:addrObj(gv('ap-street'),gv('ap-province')),history:hist,allergies:al,createdAt:new Date().toISOString().slice(0,10)};
   closeModal();dbAddP(p,function(){notify('✅ Đã thêm: '+name);setView('patient',p.id);});
 }
 
@@ -1591,6 +1617,7 @@ function showEditModal(pid){
   openModal('<div class="modal-header"><h3>✏ Chỉnh sửa thông tin</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+
   '<div class="modal-body"><div class="grid-2">'+
     '<div class="fg"><label class="fl">Họ và tên</label><input class="fc" id="ep-n" value="'+esc(p.name)+'"></div>'+
+    '<div class="fg"><label class="fl">Biệt danh</label><input class="fc" id="ep-nick" value="'+esc(p.nickname||'')+'" placeholder="VD: Ông An béo, Ba Bình..."></div>'+
     '<div class="fg"><label class="fl">Ngày sinh</label><input type="date" class="fc" id="ep-dob" value="'+(p.dob||'')+'"></div>'+
     '<div class="fg"><label class="fl">Giới tính</label><select class="fc" id="ep-g"><option '+(p.gender==='Nam'?'selected':'')+'>Nam</option><option '+(p.gender==='Nữ'?'selected':'')+'>Nữ</option><option '+(p.gender==='Khác'?'selected':'')+'>Khác</option></select></div>'+
     '<div class="fg"><label class="fl">Điện thoại</label><input class="fc" id="ep-ph" value="'+esc(p.phone||'')+'"></div>'+
@@ -1603,7 +1630,7 @@ function showEditModal(pid){
 }
 function updP(pid){
   var p=db.patients.find(function(x){return x.id===pid});if(!p)return;
-  p.name=gv('ep-n');p.dob=gv('ep-dob');p.gender=document.getElementById('ep-g').value;
+  p.name=gv('ep-n');p.nickname=gv('ep-nick');p.dob=gv('ep-dob');p.gender=document.getElementById('ep-g').value;
   p.phone=gv('ep-ph');p.blood=gv('ep-bl');p.job=gv('ep-job');p.address=addrObj(gv('ep-street'),gv('ep-province'));
   closeModal();dbUpdP(p,function(){notify('✅ Đã cập nhật');if(!useSupabase)render();});
 }
