@@ -2082,6 +2082,7 @@ function rVitalsInbox(){
           '<div style="display:flex;gap:6px">'+
             (p?'<button class="btn btn-secondary btn-sm" onclick="setView(\'patient\',\''+l.patientId+'\')">Hồ sơ</button>':'')+
             (p?'<button class="btn btn-primary btn-sm" onclick="goNV(\''+l.patientId+'\')">+ Khám</button>':'')+
+            '<button class="btn btn-danger btn-sm" onclick="confirmDelVlog(\''+logId+'\')" title="Xóa">🗑</button>'+
           '</div>'+
         '</div>'+
         vitalsHtml+
@@ -2095,8 +2096,33 @@ function rVitalsInbox(){
 
 // Khởi tạo notification permission khi app start (không tự hỏi ngay, chờ user vào inbox)
 function initNotifications(){
-  // Chỉ cập nhật badge, không xin quyền ngay
   updateInboxBadge();
+}
+
+function confirmDelVlog(logId){
+  showConfirm('🗑 Xóa bản ghi này?','Bản ghi theo dõi tại nhà này sẽ bị xóa vĩnh viễn.',function(){
+    deleteVitalLog(logId);
+  });
+}
+
+function deleteVitalLog(logId){
+  if(!useSupabase){
+    db.vitals_log=db.vitals_log.filter(function(l){return (l.id||(l.patientId+'__'+l.submittedAt))!==logId;});
+    markSeen(logId);updateInboxBadge();render();return;
+  }
+  setSyncStatus('saving');
+  fetch(sbUrl+'/rest/v1/vitals_log?id=eq.'+encodeURIComponent(logId),{
+    method:'DELETE',
+    headers:Object.assign({'Prefer':'return=minimal'},sbH())
+  }).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error(t);});
+    db.vitals_log=db.vitals_log.filter(function(l){return (l.id||(l.patientId+'__'+l.submittedAt))!==logId;});
+    markSeen(logId);
+    setSyncStatus('online');
+    notify('🗑 Đã xóa bản ghi');
+    updateInboxBadge();
+    render();
+  }).catch(function(e){notify('Lỗi xóa: '+e.message,'error');setSyncStatus('error');});
 }
 
 // Gọi initNotifications sau khi startApp
