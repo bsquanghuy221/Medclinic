@@ -529,8 +529,8 @@ function filterP(q){
       (p.phone&&p.phone.indexOf(q)>=0)||
       (p.nickname&&p.nickname.toLowerCase().indexOf(lq)>=0);
   }):db.patients.slice();
-  if(sort==='name-az')f.sort(function(a,b){return a.name.localeCompare(b.name,'vi');});
-  else if(sort==='name-za')f.sort(function(a,b){return b.name.localeCompare(a.name,'vi');});
+  if(sort==='name-az')f.sort(function(a,b){return a.name.split(' ').pop().localeCompare(b.name.split(' ').pop(),'vi');});
+  else if(sort==='name-za')f.sort(function(a,b){return b.name.split(' ').pop().localeCompare(a.name.split(' ').pop(),'vi');});
   else if(sort==='dob-old')f.sort(function(a,b){return (a.dob||'9999').localeCompare(b.dob||'9999');});
   else if(sort==='dob-young')f.sort(function(a,b){return (b.dob||'0000').localeCompare(a.dob||'0000');});
   var tb=document.getElementById('ptbody');if(tb)tb.innerHTML=rPRows(f);
