@@ -343,7 +343,7 @@ function loadFromSupabase(){
 
 function startPolling(){
   if(pollTimer)clearInterval(pollTimer);
-  pollTimer=setInterval(loadFromSupabase,30000);
+  pollTimer=setInterval(function(){loadFromSupabase();},30000);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)loadFromSupabase();});
 }
 
