@@ -860,6 +860,227 @@ function icdSearch(q){
   });
   return res.slice(0,8);
 }
+
+// ── Danh sách thuốc autocomplete ─────────────────────────────
+var DRUG_LIST=[
+  // TIM MẠCH — CCB
+  'Amlodipine 5mg','Amlodipine 10mg',
+  'Nifedipine 10mg','Nifedipine 20mg','Nifedipine 30mg',
+  'Felodipine 5mg','Felodipine 10mg',
+  'Lercanidipine 10mg','Lercanidipine 20mg',
+  // ACEi
+  'Enalapril 5mg','Enalapril 10mg','Enalapril 20mg',
+  'Perindopril 4mg','Perindopril 8mg',
+  'Captopril 25mg','Captopril 50mg',
+  'Lisinopril 5mg','Lisinopril 10mg','Lisinopril 20mg',
+  // ARB
+  'Losartan 25mg','Losartan 50mg','Losartan 100mg',
+  'Valsartan 40mg','Valsartan 80mg','Valsartan 160mg',
+  'Irbesartan 75mg','Irbesartan 150mg','Irbesartan 300mg',
+  'Telmisartan 40mg','Telmisartan 80mg',
+  'Candesartan 4mg','Candesartan 8mg','Candesartan 16mg',
+  // Beta-blocker
+  'Bisoprolol 2.5mg','Bisoprolol 5mg','Bisoprolol 10mg',
+  'Metoprolol 25mg','Metoprolol 50mg','Metoprolol 100mg',
+  'Carvedilol 6.25mg','Carvedilol 12.5mg','Carvedilol 25mg',
+  'Nebivolol 5mg',
+  // Lợi tiểu
+  'Hydrochlorothiazide 12.5mg','Hydrochlorothiazide 25mg',
+  'Indapamide 1.5mg','Indapamide 2.5mg',
+  'Furosemide 20mg','Furosemide 40mg',
+  'Spironolactone 25mg','Spironolactone 50mg','Spironolactone 100mg',
+  // Phối hợp cố định
+  'Perindopril + Amlodipine 4/5mg','Perindopril + Amlodipine 8/5mg','Perindopril + Amlodipine 8/10mg',
+  'Losartan + Hydrochlorothiazide 50/12.5mg','Losartan + Hydrochlorothiazide 100/12.5mg',
+  'Valsartan + Amlodipine 80/5mg','Valsartan + Amlodipine 160/5mg','Valsartan + Amlodipine 160/10mg',
+  // Statin
+  'Atorvastatin 10mg','Atorvastatin 20mg','Atorvastatin 40mg','Atorvastatin 80mg',
+  'Rosuvastatin 5mg','Rosuvastatin 10mg','Rosuvastatin 20mg','Rosuvastatin 40mg',
+  'Simvastatin 10mg','Simvastatin 20mg','Simvastatin 40mg',
+  // Chống đông — kết tập tiểu cầu
+  'Aspirin 81mg','Aspirin 100mg',
+  'Clopidogrel 75mg',
+  'Ticagrelor 60mg','Ticagrelor 90mg',
+  // Tim mạch khác
+  'Digoxin 0.25mg',
+  'Amiodarone 200mg',
+  'Isosorbide mononitrate 20mg','Isosorbide mononitrate 40mg',
+  'Nitroglycerin 0.5mg',
+
+  // HẠ ĐƯỜNG HUYẾT
+  'Metformin 500mg','Metformin 850mg','Metformin 1000mg',
+  'Metformin XR 500mg','Metformin XR 750mg','Metformin XR 1000mg',
+  'Gliclazide 30mg','Gliclazide 60mg','Gliclazide MR 30mg','Gliclazide MR 60mg','Gliclazide 80mg',
+  'Sitagliptin 25mg','Sitagliptin 50mg','Sitagliptin 100mg',
+  'Saxagliptin 2.5mg','Saxagliptin 5mg',
+  'Vildagliptin 50mg',
+  'Linagliptin 5mg',
+  'Empagliflozin 10mg','Empagliflozin 25mg',
+  'Dapagliflozin 5mg','Dapagliflozin 10mg',
+  'Metformin + Sitagliptin 500/50mg','Metformin + Sitagliptin 1000/50mg',
+  'Metformin + Vildagliptin 500/50mg','Metformin + Vildagliptin 850/50mg',
+  'Metformin + Empagliflozin 500/10mg','Metformin + Empagliflozin 1000/10mg',
+  'Metformin + Dapagliflozin 500/5mg','Metformin + Dapagliflozin 1000/5mg',
+  'Acarbose 50mg','Acarbose 100mg',
+  'Pioglitazone 15mg','Pioglitazone 30mg','Pioglitazone 45mg',
+  'Repaglinide 0.5mg','Repaglinide 1mg','Repaglinide 2mg',
+
+  // GIẢM ĐAU
+  'Paracetamol 325mg','Paracetamol 500mg','Paracetamol 650mg','Paracetamol 1000mg',
+  'Ibuprofen 200mg','Ibuprofen 400mg','Ibuprofen 600mg',
+  'Meloxicam 7.5mg','Meloxicam 15mg',
+  'Celecoxib 100mg','Celecoxib 200mg','Celecoxib 400mg',
+  'Diclofenac 25mg','Diclofenac 50mg','Diclofenac 75mg','Diclofenac 100mg',
+  'Naproxen 250mg','Naproxen 500mg',
+  'Etoricoxib 30mg','Etoricoxib 60mg','Etoricoxib 90mg','Etoricoxib 120mg',
+  'Indomethacin 25mg','Indomethacin 50mg',
+  'Ketorolac 10mg',
+  'Tramadol 50mg','Tramadol 100mg',
+  'Tramadol + Paracetamol 37.5/325mg',
+  'Codeine 30mg',
+  'Codeine + Paracetamol 30/500mg',
+  'Pregabalin 25mg','Pregabalin 50mg','Pregabalin 75mg','Pregabalin 150mg','Pregabalin 300mg',
+  'Gabapentin 100mg','Gabapentin 300mg','Gabapentin 400mg',
+  'Diclofenac gel 1%',
+  'Voltaren Emulgel',
+
+  // KHÁNG SINH — Penicillin
+  'Amoxicillin 250mg','Amoxicillin 500mg','Amoxicillin 875mg',
+  'Amoxicillin + Clavulanate 500/125mg','Amoxicillin + Clavulanate 875/125mg','Amoxicillin + Clavulanate 1000/125mg',
+  'Ampicillin 250mg','Ampicillin 500mg',
+  // Cephalosporin
+  'Cephalexin 250mg','Cephalexin 500mg',
+  'Cefadroxil 500mg','Cefadroxil 1000mg',
+  'Cefuroxime 125mg','Cefuroxime 250mg','Cefuroxime 500mg',
+  'Cefixime 100mg','Cefixime 200mg','Cefixime 400mg',
+  'Cefdinir 300mg',
+  'Cefpodoxime 100mg','Cefpodoxime 200mg',
+  // Macrolide
+  'Azithromycin 250mg','Azithromycin 500mg',
+  'Clarithromycin 250mg','Clarithromycin 500mg',
+  'Erythromycin 250mg','Erythromycin 500mg',
+  // Fluoroquinolone
+  'Ciprofloxacin 250mg','Ciprofloxacin 500mg','Ciprofloxacin 750mg',
+  'Levofloxacin 250mg','Levofloxacin 500mg','Levofloxacin 750mg',
+  'Moxifloxacin 400mg',
+  // Khác
+  'Doxycycline 50mg','Doxycycline 100mg',
+  'Trimethoprim + Sulfamethoxazole 80/400mg','Trimethoprim + Sulfamethoxazole 160/800mg',
+  'Metronidazole 250mg','Metronidazole 400mg','Metronidazole 500mg',
+  'Tinidazole 500mg',
+  'Clindamycin 150mg','Clindamycin 300mg',
+
+  // TIÊU HÓA — PPI
+  'Omeprazole 10mg','Omeprazole 20mg','Omeprazole 40mg',
+  'Esomeprazole 20mg','Esomeprazole 40mg',
+  'Pantoprazole 20mg','Pantoprazole 40mg',
+  'Rabeprazole 10mg','Rabeprazole 20mg',
+  'Lansoprazole 15mg','Lansoprazole 30mg',
+  // Bảo vệ dạ dày
+  'Sucralfate 1g',
+  'Bismuth subsalicylate 262mg',
+  'Misoprostol 200mcg',
+  // Nhu động
+  'Domperidone 10mg',
+  'Metoclopramide 10mg',
+  'Itopride 50mg',
+  'Mosapride 5mg',
+  'Trimebutine 100mg','Trimebutine 200mg',
+  // Táo bón
+  'Lactulose 10g/15ml',
+  'Macrogol 3350 17g',
+  'Bisacodyl 5mg','Bisacodyl 10mg',
+  'Sorbitol 5g',
+  'Glycerin suppository',
+  // Tiêu chảy
+  'Loperamide 2mg',
+  'Diosmectite (Smecta) 3g',
+  'Racecadotril 10mg','Racecadotril 30mg','Racecadotril 100mg',
+  'Oresol (ORS)',
+  // Enzyme tiêu hóa
+  'Pancreatin (Creon) 10000 UI','Pancreatin (Creon) 25000 UI',
+  'Simethicone 40mg','Simethicone 80mg','Simethicone 125mg',
+  // Gan mật
+  'Ursodeoxycholic acid 150mg','Ursodeoxycholic acid 300mg',
+  'Silymarin 70mg','Silymarin 140mg',
+  'Ornithine aspartate 3g',
+
+  // XƯƠNG KHỚP — LÃO KHOA
+  'Calcium carbonate 500mg','Calcium carbonate 1000mg',
+  'Vitamin D3 1000 IU','Vitamin D3 2000 IU',
+  'Alendronate 70mg','Risedronate 35mg',
+  'Glucosamine 500mg','Glucosamine 750mg',
+  'Allopurinol 100mg','Allopurinol 300mg',
+  'Colchicine 0.6mg',
+
+  // THẦN KINH — SA SÚT TRÍ TUỆ
+  'Donepezil 5mg','Donepezil 10mg',
+  'Memantine 10mg','Memantine 20mg',
+  'Rivastigmine 1.5mg','Rivastigmine 3mg','Rivastigmine 4.5mg','Rivastigmine 6mg',
+  'Piracetam 400mg','Piracetam 800mg','Piracetam 1200mg',
+  'Ginkgo biloba 40mg','Ginkgo biloba 80mg',
+
+  // TÂM THẦN
+  'Sertraline 50mg','Sertraline 100mg',
+  'Escitalopram 10mg','Escitalopram 20mg',
+  'Mirtazapine 15mg','Mirtazapine 30mg',
+  'Quetiapine 25mg','Quetiapine 50mg','Quetiapine 100mg',
+  'Zolpidem 5mg','Zolpidem 10mg',
+  'Melatonin 3mg','Melatonin 5mg',
+
+  // HÔ HẤP
+  'Salbutamol 2mg','Salbutamol 4mg',
+  'Theophylline 100mg','Theophylline 200mg',
+  'Montelukast 10mg',
+
+  // TUYẾN GIÁP
+  'Levothyroxine 25mcg','Levothyroxine 50mcg','Levothyroxine 75mcg','Levothyroxine 100mcg',
+
+  // CORTICOSTEROID
+  'Prednisolone 5mg','Prednisolone 20mg',
+  'Methylprednisolone 4mg','Methylprednisolone 16mg',
+
+  // VITAMIN — BỔ SUNG
+  'Vitamin B1 100mg','Vitamin B6 50mg','Vitamin B12 500mcg',
+  'Mecobalamin 500mcg',
+  'Ferrous sulfate 325mg',
+  'Folic acid 5mg',
+  'Vitamin C 500mg','Vitamin C 1000mg',
+  'Vitamin E 400 IU',
+  'Omega-3 1000mg',
+  'Zinc sulfate 50mg'
+];
+
+function drugSearch(q){
+  if(!q||q.length<2)return[];
+  q=q.toLowerCase().trim();
+  return DRUG_LIST.filter(function(d){
+    return d.toLowerCase().indexOf(q)>=0;
+  }).slice(0,8);
+}
+
+function showDrugDropdown(inputId,dropId){
+  var inp=document.getElementById(inputId);
+  var drop=document.getElementById(dropId);
+  if(!inp||!drop)return;
+  var results=drugSearch(inp.value);
+  if(!results.length){drop.style.display='none';return;}
+  drop.innerHTML=results.map(function(d){
+    return '<div onmousedown="selectDrug(\''+inputId+'\',\''+dropId+'\',\''+d.replace(/'/g,"\\'")+'\')" '+
+      'style="padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--g100);font-size:13px;display:flex;align-items:center;gap:8px" '+
+      'onmouseover="this.style.background=\'var(--b50)\'" onmouseout="this.style.background=\'white\'">'+
+      '<span style="font-size:16px">💊</span>'+
+      '<span>'+d+'</span></div>';
+  }).join('');
+  drop.style.display='block';
+}
+
+function selectDrug(inputId,dropId,name){
+  var inp=document.getElementById(inputId);
+  var drop=document.getElementById(dropId);
+  if(inp)inp.value=name;
+  if(drop)drop.style.display='none';
+}
 function showIcdDropdown(inputId,hiddenId,dropId){
   var inp=document.getElementById(inputId);
   var drop=document.getElementById(dropId);
@@ -1060,7 +1281,7 @@ function addMed(){
       '<button onclick="rmEl(\''+id+'\')" style="width:24px;height:24px;border:1px solid #fecaca;background:#fee2e2;color:#b91c1c;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
-      '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px">Tên thuốc *</label><input class="fc" id="'+id+'_n" placeholder="VD: Amoxicillin 500mg" style="background:white"></div>'+
+      '<div style="position:relative"><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px">Tên thuốc *</label><input class="fc" id="'+id+'_n" placeholder="VD: Amoxicillin 500mg" style="background:white" autocomplete="off"><div id="'+id+'_ndrop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1px solid var(--g200);border-radius:var(--rs);box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:200;max-height:240px;overflow-y:auto"></div></div>'+
       '<div><label style="display:block;font-size:11px;font-weight:600;color:var(--g600);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.3px">Dạng dùng</label>'+
         '<select class="fc" id="'+id+'_form" style="background:white">'+
           '<option value="viên">Viên (uống)</option>'+
@@ -1108,6 +1329,12 @@ function addMed(){
   var formEl=d.querySelector('#'+id+'_form');
   var lblEl=d.querySelector('#'+id+'_qty_lbl');
   if(formEl&&lblEl){formEl.addEventListener('change',function(){lblEl.textContent=this.value});}
+  // Drug autocomplete
+  var nameEl=d.querySelector('#'+id+'_n');
+  if(nameEl){
+    nameEl.addEventListener('input',function(){showDrugDropdown(id+'_n',id+'_ndrop');});
+    nameEl.addEventListener('blur',function(){setTimeout(function(){var dr=document.getElementById(id+'_ndrop');if(dr)dr.style.display='none';},200);});
+  }
   document.getElementById('med-rows').appendChild(d);
 }
 function addTest(){var id='t'+Date.now();testRows.push(id);var d=document.createElement('div');d.id=id;d.style.cssText='display:grid;grid-template-columns:2fr 2fr 120px 38px;gap:8px;margin-bottom:8px;align-items:center';d.innerHTML='<input class="fc" id="'+id+'_n" placeholder="Tên xét nghiệm/CĐHA"><input class="fc" id="'+id+'_r" placeholder="Kết quả (nếu có)"><select class="fc" id="'+id+'_s"><option value="pending">⏳ Chờ KQ</option><option value="done">✓ Có KQ</option></select><button onclick="rmEl(\''+id+'\')" style="width:38px;height:38px;border:1px solid #fecaca;background:#fee2e2;color:#b91c1c;border-radius:var(--rs);cursor:pointer;font-size:16px">✕</button>';document.getElementById('test-rows').appendChild(d);}
